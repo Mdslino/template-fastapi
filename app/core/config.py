@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "postgres"
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
+    API_V1_STR: str = "/api/v1"
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(
