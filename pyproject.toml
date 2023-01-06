@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "template-fastapi"
+version = "0.1.0"
+description = ""
+authors = ["Marcelo Lino <mdslino@gmail.com>"]
+readme = "README.md"
+packages = [{include = "template_fastapi"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
