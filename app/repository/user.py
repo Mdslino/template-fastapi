@@ -63,5 +63,11 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
 
         return user
 
+    async def is_active(self, user: User) -> bool:
+        return user.is_active
+
+    async def is_superuser(self, user: User) -> bool:
+        return user.is_superuser
+
 
 user = UserRepository(User)

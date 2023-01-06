@@ -6,8 +6,9 @@ from jose import exceptions, jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import repository
 from app.auth.models import User
-from app.core import security
+from app.core import schemas, security
 from app.core.config import settings
 from app.db.session import SessionLocal
 
@@ -37,7 +38,7 @@ async def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",
         )
-    user = await crud.user.get(db, id=token_data.sub)
+    user = await repository.user.get(db, id=token_data.sub)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -48,7 +49,7 @@ async def get_current_user(
 async def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if not crud.user.is_active(current_user):
+    if not repository.user.is_active(current_user):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
@@ -58,7 +59,7 @@ async def get_current_active_user(
 async def get_current_active_superuser(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if not crud.user.is_superuser(current_user):
+    if not repository.user.is_superuser(current_user):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user doesn't have enough privileges",
