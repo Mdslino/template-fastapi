@@ -28,7 +28,7 @@ test:
 	pytest tests/ -v
 
 test-coverage:
-	pytest --cov=app tests/ -v
+	pytest --cov-branch --cov-report term-missing --cov=app tests/ -v
 
 #Run Serction
 run:

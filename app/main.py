@@ -17,7 +17,8 @@ def create_app():
     return app
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
+    # This is only for local development.
     import uvicorn
 
     app = create_app()

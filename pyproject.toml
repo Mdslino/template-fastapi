@@ -12,6 +12,14 @@ fastapi = "^0.88.0"
 uvicorn = {extras = ["standard"], version = "^0.20.0"}
 pydantic = {extras = ["email"], version = "^1.10.4"}
 httpx = "^0.23.3"
+python-multipart = "^0.0.5"
+email-validator = "^1.3.0"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+gunicorn = "^20.1.0"
+psycopg2-binary = "^2.9.5"
+alembic = "^1.9.1"
+sqlalchemy = "^1.4.46"
+python-jose = "^3.3.0"
 
 
 [tool.poetry.group.test.dependencies]
@@ -25,6 +33,7 @@ black = "^22.12.0"
 mypy = "^0.991"
 flake8 = "^6.0.0"
 isort = "^5.11.4"
+ipython = "^8.8.0"
 
 [tool.isort]
 profile = "black"
