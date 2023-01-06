@@ -14,7 +14,7 @@ class Base:
         return cls.__name__.lower()
 
 
-class BaseModel(Base):
+class BaseModel(Base):  # type: ignore
     __abstract__ = True
 
     id = Column(
