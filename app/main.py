@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 
+from app.core.config import settings
+
 
 def create_app():
-    app = FastAPI()
+    app = FastAPI(
+        title=settings.APP_NAME,
+        version=settings.APP_VERSION,
+        debug=settings.DEBUG,
+    )
 
     @app.get("/healthcheck")
     def healthcheck():
