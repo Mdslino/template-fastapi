@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "postgres"
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
     API_V1_STR: str = "/api/v1"
+    LOG_LEVEL: str = "INFO"
+    LOGGING_CONFIG: Dict[str, Any] = {
+        "version": 1,
+        "disable_existing_loggers": False,
+    }
 
     @validator("SQLALCHEMY_DATABASE_URI", pre=True)
     def assemble_db_connection(
