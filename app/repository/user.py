@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional, Union
 
+from fastapi.logger import logger
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -67,10 +68,10 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
         return user
 
     def is_active(self, user: User) -> bool:
-        return user.is_active
+        return user.is_active  # type: ignore
 
     def is_superuser(self, user: User) -> bool:
-        return user.is_superuser
+        return user.is_superuser  # type: ignore
 
 
 user = UserRepository(User)

@@ -1,6 +1,5 @@
-import logging
-
 from fastapi import Depends, HTTPException, status
+from fastapi.logger import logger
 from fastapi.security import OAuth2PasswordBearer
 from jose import exceptions, jwt
 from pydantic import ValidationError
@@ -11,8 +10,6 @@ from app.auth.models import User
 from app.core import schemas, security
 from app.core.config import settings
 from app.db.session import SessionLocal
-
-logger = logging.getLogger(__name__)
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
