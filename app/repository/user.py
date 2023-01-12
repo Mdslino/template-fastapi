@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Union
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.auth.models import User
 from app.auth.schemas import UserCreate, UserUpdate
@@ -10,14 +10,12 @@ from app.repository.base import RepositoryBase
 
 
 class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
-    async def get_by_email(
-        self, db: AsyncSession, *, email: str
-    ) -> Optional[User]:
+    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
         stmt = select(User).where(User.email == email)
-        result = await db.execute(stmt)
+        result = db.execute(stmt)
         return result.scalars().first()
 
-    async def create(self, db: AsyncSession, *, obj_in: UserCreate) -> User:
+    def create(self, db: Session, *, obj_in: UserCreate) -> User:
         db_obj = User(
             email=obj_in.email,
             hashed_password=get_password_hash(obj_in.password),
@@ -25,21 +23,26 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
             is_superuser=False,
         )
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def update(
+    def update(
         self,
-        db: AsyncSession,
+        db: Session,
         *,
         db_obj: User,
         obj_in: Union[UserUpdate, Dict[str, Any]],
     ) -> User:
         if isinstance(obj_in, dict):
             update_data = obj_in
+            return self.update(
+                db=db, db_obj=db_obj, obj_in=UserUpdate(**update_data)
+            )
         else:
-            update_data = obj_in.dict(exclude_unset=True)
+            update_data = obj_in.dict(
+                exclude_unset=True, exclude={"password2"}
+            )
 
         if update_data["password"]:
             hashed_password = get_password_hash(update_data["password"])
@@ -47,14 +50,14 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
             update_data["hashed_password"] = hashed_password
         for field in update_data:
             setattr(db_obj, field, update_data[field])
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def authenticate(
-        self, db: AsyncSession, *, email: str, password: str
+    def authenticate(
+        self, db: Session, *, email: str, password: str
     ) -> Optional[User]:
-        user = await self.get_by_email(db, email=email)
+        user = self.get_by_email(db, email=email)
         if not user:
             return None
 
@@ -63,10 +66,10 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
 
         return user
 
-    async def is_active(self, user: User) -> bool:
+    def is_active(self, user: User) -> bool:
         return user.is_active
 
-    async def is_superuser(self, user: User) -> bool:
+    def is_superuser(self, user: User) -> bool:
         return user.is_superuser
 
 

@@ -24,7 +24,7 @@ class User(BaseModel):
     roles = relationship(
         "Role",
         viewonly=True,
-        secondary="user_role",
+        secondary="userrole",
         lazy="joined",
         uselist=True,
     )

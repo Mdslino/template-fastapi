@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.db.base_class import Base
 
@@ -15,38 +15,36 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class RepositoryBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def __init__(self, model: Type[ModelType]):
         """
-        CRUD object with default methods to Create, Read, Update, Delete (CRUD).
+        CRUD object with default methods to Create, Read, Update, Delete.
         **Parameters**
         * `model`: A SQLAlchemy model class
         * `schema`: A Pydantic model (schema) class
         """
         self.model = model
 
-    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
+    def get(self, db: Session, id: Any) -> Optional[ModelType]:
         stmt = select(self.model).where(self.model.id == id)
-        result = await db.execute(stmt)
+        result = db.execute(stmt)
         return result.scalars().first()
 
-    async def get_multi(
-        self, db: AsyncSession, *, skip: int = 0, limit: int = 100
+    def get_multi(
+        self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
         stmt = select(self.model).offset(skip).limit(limit)
-        result = await db.execute(stmt)
+        result = db.execute(stmt)
         return result.scalars().all()
 
-    async def create(
-        self, db: AsyncSession, *, obj_in: CreateSchemaType
-    ) -> ModelType:
+    def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = self.model(**obj_in_data)  # type: ignore
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def update(
+    def update(
         self,
-        db: AsyncSession,
+        db: Session,
         *,
         db_obj: ModelType,
         obj_in: Union[UpdateSchemaType, Dict[str, Any]],
@@ -60,12 +58,12 @@ class RepositoryBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
         db.add(db_obj)
-        await db.commit()
-        await db.refresh(db_obj)
+        db.commit()
+        db.refresh(db_obj)
         return db_obj
 
-    async def remove(self, db: AsyncSession, *, id: int) -> None:
-        obj = await self.get(db, id)
-        await db.delete(obj)
-        await db.commit()
+    def remove(self, db: Session, *, id: int) -> None:
+        obj = self.get(db, id)
+        db.delete(obj)
+        db.commit()
         return

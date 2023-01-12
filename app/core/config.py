@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = "secret"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    POSTGRES_PROTOCOL: str = "postgresql+psycopg2"
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "postgres"
@@ -26,10 +27,11 @@ class Settings(BaseSettings):
             return v
 
         return PostgresDsn.build(
-            scheme="postgresql+asyncpg",
+            scheme=values["POSTGRES_PROTOCOL"],
             user=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),  # type: ignore          port=values.get("POSTGRES_PORT"),
+            host=values["POSTGRES_SERVER"],
+            port=values.get("POSTGRES_PORT"),
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 

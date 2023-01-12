@@ -25,10 +25,10 @@ clean:
 
 # Test Section
 test:
-	pytest tests/ -v
+	pytest tests/ -vv
 
 test-coverage:
-	pytest --cov-branch --cov-report term-missing --cov=app tests/ -v
+	pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
 
 #Run Serction
 run:

@@ -1,5 +1,3 @@
-from typing import AsyncGenerator, Generator
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import exceptions, jwt
@@ -17,12 +15,15 @@ reusable_oauth2 = OAuth2PasswordBearer(
 )
 
 
-async def get_db():
+def get_db():
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
-        db.close()  # type: ignore
+        db.close()
 
 
 async def get_current_user(
