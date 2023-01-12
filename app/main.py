@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 
 from app.core.config import settings
+from app.core.endpoints import router
 
 gunicorn_error_logger = logging.getLogger("gunicorn.error")
 gunicorn_logger = logging.getLogger("gunicorn")
@@ -21,6 +22,8 @@ def create_app():
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
     )
+
+    app.include_router(router, prefix=settings.API_V1_STR)
 
     @app.get("/healthcheck")
     def healthcheck():
