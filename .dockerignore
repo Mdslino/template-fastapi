@@ -1,0 +1,12 @@
+.git
+.pytest_cache
+.vscode
+.coverage
+.example.env
+.test.env
+.gitignore
+Dockerfile
+docker-compose.yaml
+__pycache__/
+*.py[cod]
+*$py.class

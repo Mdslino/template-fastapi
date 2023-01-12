@@ -1,6 +1,42 @@
 version: '3'
 
+x-app: &x-app
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .docker.env
+  depends_on:
+    db:
+      condition: service_healthy
+
 services:
+  app:
+    <<: *x-app
+    container_name: app
+    restart: always
+    ports:
+      - 8000:8000
+    command: make run
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
+      interval: 30s
+      timeout: 5s
+      start_period: 1s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+  
+  migrations:
+    <<: *x-app
+    container_name: migrations
+    command: make migrate
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     container_name: db
     image: postgres:alpine

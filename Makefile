@@ -32,10 +32,10 @@ test-coverage:
 
 #Run Serction
 run:
-	@gunicorn "app.app:create_app()" -k gevent -b 0.0.0.0:8000 -w 4 --preload --access-logfile=- --error-logfile=- --log-level info
+	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 -w 4 --preload --access-logfile=- --error-logfile=- --log-level info
 
 run-dev:
-	@gunicorn "app.app:create_app()" -k gevent --bind 0.0.0.0:8000 --preload --reload --access-logfile=- --error-logfile=- --log-level debug
+	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --preload --reload --access-logfile=- --error-logfile=- --log-level debug
 
 # Lint Section
 black:
@@ -62,3 +62,12 @@ isort-check:
 	@isort --check-only app/
 
 lint: flake8 black-check isort-check
+
+migrate:
+	@PYTHONPATH=. alembic upgrade head
+
+migration:
+	@PYTHONPATH=. alembic revision --autogenerate -m "$(m)"
+
+migrate-down:
+	@PYTHONPATH=. alembic downgrade -1

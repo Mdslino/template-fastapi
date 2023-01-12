@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     POSTGRES_PROTOCOL: str = "postgresql+psycopg2"
     POSTGRES_SERVER: str = "localhost"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_PORT: str = "5432"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "postgres"

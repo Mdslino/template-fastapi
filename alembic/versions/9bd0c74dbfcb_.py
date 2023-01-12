@@ -31,6 +31,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f("ix_role_id"), "role", ["id"], unique=True)
     op.create_index(op.f("ix_role_name"), "role", ["name"], unique=True)
+    op.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
     op.create_table(
         "user",
         sa.Column("id", sa.BigInteger(), autoincrement=True, nullable=False),
