@@ -1,22 +1,26 @@
 from typing import Any, Dict, Optional, Union
 
 from fastapi.logger import logger
+from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.auth.models import User
 from app.auth.schemas import UserCreate, UserUpdate
 from app.core.security import get_password_hash, verify_password
+from app.core.utils import hide_email
 from app.repository.base import RepositoryBase
 
 
 class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
-    def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
+    def get_by_email(self, db: Session, *, email: EmailStr) -> Optional[User]:
+        logger.info(f"Getting user by email {hide_email(email)}")
         stmt = select(User).where(User.email == email)
         result = db.execute(stmt)
         return result.scalars().first()
 
     def create(self, db: Session, *, obj_in: UserCreate) -> User:
+        logger.info(f"Creating user {hide_email(obj_in.email)}")
         db_obj = User(
             email=obj_in.email,
             hashed_password=get_password_hash(obj_in.password),
@@ -26,6 +30,7 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
+        logger.info(f"User {hide_email(obj_in.email)} created")
         return db_obj
 
     def update(
@@ -53,16 +58,19 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
             setattr(db_obj, field, update_data[field])
         db.commit()
         db.refresh(db_obj)
+        logger.info(f"User {hide_email(db_obj.email)} updated")
         return db_obj
 
     def authenticate(
-        self, db: Session, *, email: str, password: str
+        self, db: Session, *, email: EmailStr, password: str
     ) -> Optional[User]:
         user = self.get_by_email(db, email=email)
         if not user:
+            logger.warning(f"User {hide_email(email)} not found")
             return None
 
         if not verify_password(password, user.hashed_password):  # type: ignore
+            logger.warning(f"Wrong password for user {hide_email(email)}")
             return None
 
         return user
