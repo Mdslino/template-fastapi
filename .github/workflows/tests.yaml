@@ -18,9 +18,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        apt install make
         python -m pip install --upgrade pip setuptools wheel poetry
         poetry install
     - name: Test with pytest
       run: |
-        make test
+        pytest tests/ -vv
