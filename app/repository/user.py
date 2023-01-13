@@ -74,13 +74,15 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
         user = self.get_by_email(db, email=email)
         if not user:
             logger.warning(f"User {hide_email(email)} not found")
-            return None
 
         if not verify_password(password, user.hashed_password):  # type: ignore
             logger.warning(f"Wrong password for user {hide_email(email)}")
-            return None
 
-        return user
+        if self.is_active(user):
+            logger.info(f"User {hide_email(email)} authenticated")
+            return user
+
+        return None
 
     def is_active(self, user: User) -> bool:
         return user.is_active  # type: ignore

@@ -1,15 +1,19 @@
 from fastapi import Depends, status
+from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 from app import repository
 from app.auth import models, schemas
+from app.core import security
 from app.core.deps import (
     get_current_active_superuser,
     get_current_active_user,
     get_db,
 )
+from app.core.schemas import Token
 
 router = APIRouter()
 
@@ -66,3 +70,22 @@ def update_user(
         db_obj=repository.user.get_by_external_id(db, external_id=user_id),
         obj_in=user,
     )
+
+
+@router.post("/token", response_model=Token)
+def get_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = repository.user.authenticate(
+        db, email=form_data.username, password=form_data.password  # type: ignore
+    )
+    if user:
+        token = security.create_access_token(user)
+        return {"access_token": token, "token_type": "bearer"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

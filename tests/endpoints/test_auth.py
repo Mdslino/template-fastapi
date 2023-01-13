@@ -60,3 +60,17 @@ def test_read_user_me(client, user_token):
     )
     assert response.status_code == 200
     assert response.json()
+
+
+def test_login(client, user_factory):
+    payload = {
+        "username": user_factory.email,
+        "password": "password",
+    }
+    response = client.post(
+        f"{BASE_URL}/token",
+        data=payload,
+    )
+    assert response.status_code == 200
+    assert response.json()["access_token"]
+    assert response.json()["token_type"] == "bearer"
