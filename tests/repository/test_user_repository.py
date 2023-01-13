@@ -4,7 +4,6 @@ from app import repository
 from app.auth.schemas import UserCreate, UserUpdate
 
 
-@pytest.mark.usefixtures("create_test_database")
 class TestUserRepository:
     def test_get_user_by_email(self, user_factory, db):
         user = user_factory

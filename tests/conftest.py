@@ -1,3 +1,5 @@
+import contextlib
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy_utils import create_database, database_exists
@@ -19,7 +21,7 @@ def client(app):
     return TestClient(app)
 
 
-@pytest.fixture
+@pytest.fixture(scope="session", autouse=True)
 def create_test_database():
     # Create the database and tables if they don't exist
     if database_exists(engine.url):
@@ -40,6 +42,16 @@ def create_test_database():
 
     # Drop tables
     Base.metadata.drop_all(bind=engine)  # type: ignore
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_db():
+    meta = Base.metadata
+    with contextlib.closing(engine.connect()) as connection:
+        transaction = connection.begin()
+        for table in reversed(meta.sorted_tables):
+            connection.execute(table.delete())
+        transaction.commit()
 
 
 @pytest.fixture

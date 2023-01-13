@@ -4,7 +4,6 @@ from app.core.security import create_access_token
 from tests.factories.user_factory import UserFactory
 
 
-@pytest.mark.usefixtures("create_test_database")
 class TestAuthEndpoints:
     @property
     def base_url(self):
