@@ -3,8 +3,7 @@ name: Test Package
 on: [push, pull_request]
 
 jobs:
-  build:
-
+  test:
     services:
       postgres:
         image: postgres:alpine
