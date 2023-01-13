@@ -2,7 +2,6 @@ from uuid import uuid4
 
 from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
 from sqlalchemy_utils import EmailType
 
 from app.db.base_class import BaseModel
@@ -21,13 +20,6 @@ class User(BaseModel):
     is_active = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
     hashed_password = Column(String, nullable=False)
-    roles = relationship(
-        "Role",
-        viewonly=True,
-        secondary="userrole",
-        lazy="joined",
-        uselist=True,
-    )
 
     def __repr__(self):
         return f"{self.id} - {self.email}"

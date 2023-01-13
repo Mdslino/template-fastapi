@@ -1,6 +1,4 @@
-from typing import Optional
-
-from pydantic import BaseModel
+from pydantic import UUID4, BaseModel
 
 
 class Token(BaseModel):
@@ -9,7 +7,8 @@ class Token(BaseModel):
 
 
 class TokenPayload(BaseModel):
-    sub: Optional[int] = None
+    exp: int
+    sub: UUID4
 
 
 class Msg(BaseModel):

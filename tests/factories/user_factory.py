@@ -1,5 +1,6 @@
-from factory import Faker
+from factory import Sequence
 from factory.alchemy import SQLAlchemyModelFactory
+from faker import Faker
 from sqlalchemy.orm import scoped_session
 
 from app.auth.models import User
@@ -13,6 +14,6 @@ class UserFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = scoped_session(SessionLocal)
         sqlalchemy_session_persistence = "commit"
 
-    email = "email@domain.com"
+    email = Sequence(lambda n: Faker().email())
     hashed_password = get_password_hash("password")
     is_active = True

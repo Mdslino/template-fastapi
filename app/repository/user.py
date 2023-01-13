@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Union
 
 from fastapi.logger import logger
-from pydantic import EmailStr
+from pydantic import UUID4, EmailStr
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,13 @@ from app.repository.base import RepositoryBase
 
 
 class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
+    def get_by_external_id(
+        self, db: Session, external_id: UUID4
+    ) -> Optional[User]:
+        stmt = select(self.model).where(self.model.external_id == external_id)
+        result = db.execute(stmt)
+        return result.scalars().first()
+
     def get_by_email(self, db: Session, *, email: EmailStr) -> Optional[User]:
         logger.info(f"Getting user by email {hide_email(email)}")
         stmt = select(User).where(User.email == email)
@@ -50,7 +57,7 @@ class UserRepository(RepositoryBase[User, UserCreate, UserUpdate]):
                 exclude_unset=True, exclude={"password2"}
             )
 
-        if update_data["password"]:
+        if update_data.get("password"):
             hashed_password = get_password_hash(update_data["password"])
             del update_data["password"]
             update_data["hashed_password"] = hashed_password
