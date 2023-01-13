@@ -55,3 +55,11 @@ class TestAuthEndpoints:
         )
         assert response.status_code == 200
         assert response.json()["email"] == payload["email"]
+
+    def test_read_user_me(self, client, user_token):
+        response = client.get(
+            f"{self.base_url}/users/me",
+            headers={"Authorization": f"Bearer {user_token}"},
+        )
+        assert response.status_code == 200
+        assert response.json()

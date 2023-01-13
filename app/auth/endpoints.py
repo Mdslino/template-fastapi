@@ -21,12 +21,15 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return repository.user.create(db=db, obj_in=user)
 
 
-@router.get("/users/", response_model=list[schemas.User])
+@router.get(
+    "/users/",
+    response_model=list[schemas.User],
+    dependencies=[Depends(get_current_active_superuser)],
+)
 def read_users(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    super_user: models.User = Depends(get_current_active_superuser),
 ):
     users = repository.user.get_multi(db, skip=skip, limit=limit)
     return users
@@ -41,12 +44,22 @@ def update_user_me(
     return repository.user.update(db=db, db_obj=current_user, obj_in=user)
 
 
-@router.patch("/users/{user_id}", response_model=schemas.User)
+@router.get("/users/me", response_model=schemas.User)
+def read_user_me(
+    current_user: models.User = Depends(get_current_active_user),
+):
+    return current_user
+
+
+@router.patch(
+    "/users/{user_id}",
+    response_model=schemas.User,
+    dependencies=[Depends(get_current_active_superuser)],
+)
 def update_user(
     user_id: UUID4,
     user: schemas.UserUpdate,
     db: Session = Depends(get_db),
-    super_user: models.User = Depends(get_current_active_superuser),
 ):
     return repository.user.update(
         db=db,
