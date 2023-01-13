@@ -2,7 +2,7 @@ import contextlib
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy_utils import create_database, database_exists
+from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from app.core.security import create_access_token
 from app.db.base import Base
@@ -38,6 +38,7 @@ def create_test_database():
 
     # Create tables
     Base.metadata.create_all(bind=engine)  # type: ignore
+
     yield
 
     # Drop tables
