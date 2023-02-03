@@ -9,7 +9,6 @@ from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.main import create_app
-from tests.factories.user_factory import UserFactory
 
 
 @pytest.fixture
@@ -63,18 +62,6 @@ def db():
         yield db
     finally:
         db.close()
-
-
-@pytest.fixture
-def user_factory():
-    user = UserFactory()
-    return user
-
-
-@pytest.fixture
-def superuser_factory():
-    user = UserFactory(is_superuser=True)
-    return user
 
 
 @pytest.fixture
