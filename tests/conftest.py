@@ -2,6 +2,7 @@ import contextlib
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
 from app.core.security import create_access_token
@@ -32,7 +33,7 @@ def create_test_database():
 
     # Create UUID extension
     db = SessionLocal()
-    db.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+    db.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'))
     db.commit()
     db.close()
 
