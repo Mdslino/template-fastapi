@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-.PHONY: all clean install test black isort format-code sort-imports flake8 mypy black-check isort-check lint run run-dev
+.PHONY: all clean install test black isort format-code sort-imports flake8 mypy black-check isort-check lint run run-dev run-db migrate migration migrate-down help run-docker
 
 # Misc Section
 help:
@@ -30,12 +30,18 @@ test:
 test-coverage:
 	pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
 
-#Run Serction
+#Run Section
 run:
 	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 -w 4 --preload --error-logfile=- --log-level info
 
 run-dev:
 	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --preload --reload --access-logfile=- --error-logfile=- --log-level debug
+
+run-db:
+	docker-compose up -d migrations
+
+run-docker:
+	docker-compose up -d
 
 # Lint Section
 black:
@@ -62,6 +68,8 @@ isort-check:
 	@isort --check-only app/
 
 lint: flake8 black-check isort-check
+
+# Migration Section
 
 migrate:
 	@PYTHONPATH=. alembic upgrade head
