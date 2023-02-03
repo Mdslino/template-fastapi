@@ -17,20 +17,20 @@ fastapi_logger.handlers = gunicorn_error_logger.handlers
 
 def create_app():
     dictConfig(settings.LOGGING_CONFIG)
-    app = FastAPI(
+    fastapi_app = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
     )
 
-    app.include_router(router, prefix=settings.API_V1_STR)
+    fastapi_app.include_router(router, prefix=settings.API_V1_STR)
 
-    @app.get("/healthcheck")
+    @fastapi_app.get("/healthcheck")
     def healthcheck():
         fastapi_logger.info("App is healthy!")
         return {"status": "ok"}
 
-    return app
+    return fastapi_app
 
 
 if __name__ == "__main__":  # pragma: no cover
