@@ -43,7 +43,9 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=detail,
         )
-    user = repository.user.get_by_external_id(db, external_id=token_data.sub)
+    user = repository.user.get_by_external_id(
+        db=db, external_id=token_data.sub
+    )
     if not user:
         detail = f"User {token_data.sub} not found"
         logger.error(detail)

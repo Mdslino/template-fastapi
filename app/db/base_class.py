@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, DateTime
+from sqlalchemy import BigInteger, Column, DateTime, text
 from sqlalchemy.orm import as_declarative, declared_attr
 
 
@@ -25,7 +25,16 @@ class BaseModel(Base):  # type: ignore
         nullable=False,
         unique=True,
     )
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        server_default=text("now()"),
+    )
     updated_at = Column(
-        DateTime, nullable=True, default=None, onupdate=datetime.utcnow
+        DateTime,
+        nullable=True,
+        default=None,
+        onupdate=datetime.utcnow,
+        server_default=text("now()"),
     )

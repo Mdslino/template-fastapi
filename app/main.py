@@ -4,6 +4,7 @@ from logging.config import dictConfig
 from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 
+from app.auth.endpoints import router as auth_router
 from app.core.config import settings
 from app.core.endpoints import router
 
@@ -24,6 +25,7 @@ def create_app():
     )
 
     fastapi_app.include_router(router, prefix=settings.API_V1_STR)
+    fastapi_app.include_router(auth_router, prefix=settings.API_V1_STR)
 
     @fastapi_app.get("/healthcheck")
     def healthcheck():
