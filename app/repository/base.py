@@ -32,7 +32,7 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> Optional[List[ModelType]]:
         stmt = select(self.model).offset(skip).limit(limit)
         result = db.execute(stmt)
-        return result.scalars().all()
+        return result.scalars().all()  # type: ignore
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)

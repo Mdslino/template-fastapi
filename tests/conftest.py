@@ -5,8 +5,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists, drop_database
 
-from app.auth.models import User
-from app.core.security import create_access_token
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
 from app.main import create_app
@@ -60,23 +58,6 @@ def db():
         yield db
     finally:
         db.close()
-
-
-@pytest.fixture
-def user_factory() -> User:
-    from tests.factories.user import UserFactory
-
-    return UserFactory()
-
-
-@pytest.fixture
-def super_user_token(superuser_factory):
-    return create_access_token(superuser_factory.external_id)
-
-
-@pytest.fixture
-def user_token(user_factory):
-    return create_access_token(user_factory.external_id)
 
 
 @pytest.fixture

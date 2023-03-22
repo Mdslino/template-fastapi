@@ -9,7 +9,7 @@ class Base:
     id: int
     __name__: str
 
-    @declared_attr
+    @declared_attr  # type: ignore
     def __tablename__(cls) -> str:  # noqa
         return cls.__name__.lower()
 
@@ -17,7 +17,7 @@ class Base:
 class BaseModel(Base):  # type: ignore
     __abstract__ = True
 
-    id = Column(
+    id = Column(  # type: ignore
         BigInteger,
         primary_key=True,
         autoincrement=True,
