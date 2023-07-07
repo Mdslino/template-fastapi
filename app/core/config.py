@@ -1,7 +1,8 @@
 from typing import Any, Dict, Optional
 
-from pydantic import BaseSettings, validator
-from pydantic.networks import PostgresDsn
+from pydantic import PostgresDsn, field_validator
+from pydantic_core.core_schema import FieldValidationInfo
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -24,21 +25,14 @@ class Settings(BaseSettings):
         "disable_existing_loggers": False,
     }
 
-    @validator("SQLALCHEMY_DATABASE_URI", pre=True)
+    @field_validator("SQLALCHEMY_DATABASE_URI")
     def assemble_db_connection(
-        cls, v: Optional[str], values: Dict[str, Any]
+        cls, v: Optional[str], values: FieldValidationInfo
     ) -> Any:
         if isinstance(v, str):
             return v
-
-        return PostgresDsn.build(
-            scheme=values["POSTGRES_PROTOCOL"],
-            user=values.get("POSTGRES_USER"),
-            password=values.get("POSTGRES_PASSWORD"),
-            host=values["POSTGRES_SERVER"],
-            port=values.get("POSTGRES_PORT"),
-            path=f"/{values.get('POSTGRES_DB') or ''}",
-        )
+        postgres_dsn = f"{values.data['POSTGRES_PROTOCOL']}://{values.data['POSTGRES_USER']}:{values.data['POSTGRES_PASSWORD']}@{values.data['POSTGRES_SERVER']}:{values.data['POSTGRES_PORT']}/{values.data['POSTGRES_DB']}"
+        return PostgresDsn(postgres_dsn)
 
 
 settings = Settings()

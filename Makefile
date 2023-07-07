@@ -1,4 +1,7 @@
 SHELL := /bin/bash
+PYTHONPATH := $(shell pwd)
+export PYTHONPATH=$(PYTHONPATH)
+
 .PHONY: all clean install test black isort format-code sort-imports flake8 mypy black-check isort-check lint run run-dev run-db migrate migration migrate-down help run-docker
 
 # Misc Section
@@ -72,10 +75,10 @@ lint: flake8 black-check isort-check
 # Migration Section
 
 migrate:
-	@PYTHONPATH=. alembic upgrade head
+	@alembic upgrade head
 
 migration:
-	@PYTHONPATH=. alembic revision --autogenerate -m "$(m)"
+	@alembic revision --autogenerate -m "$(m)"
 
 migrate-down:
-	@PYTHONPATH=. alembic downgrade -1
+	@alembic downgrade -1
