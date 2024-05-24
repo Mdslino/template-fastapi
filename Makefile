@@ -47,13 +47,13 @@ run-docker:
 	docker-compose up -d
 
 # Lint Section
-black:
-	@black .
+ruff:
+	@ruff check . --fix
 
 isort:
 	@isort .
 
-format-code: black isort
+format-code: ruff isort
 
 sort-imports:
 	@isort .
@@ -64,13 +64,13 @@ flake8:
 mypy:
 	@mypy app/
 
-black-check:
-	@black --check app/
+ruff-check:
+	@ruff check .
 
 isort-check:
 	@isort --check-only app/
 
-lint: flake8 black-check isort-check
+lint: ruff-check isort-check
 
 # Migration Section
 

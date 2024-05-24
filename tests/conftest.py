@@ -3,7 +3,7 @@ import contextlib
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
-from sqlalchemy_utils import create_database, database_exists, drop_database
+from sqlalchemy_utils import create_database, database_exists
 
 from app.db.base import Base
 from app.db.session import SessionLocal, engine

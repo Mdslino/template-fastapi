@@ -30,11 +30,11 @@ pytest-sugar = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
-flake8 = "^7.0.0"
 ipython = "^8.8.0"
 isort = "^5.11.4"
 mypy = "^1.0.1"
+ruff = "^0.4.5"
+
 
 [tool.isort]
 profile = "black"
@@ -45,21 +45,38 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 79
 
-[tool.black]
+[tool.ruff]
 line-length = 79
-target-version = ['py310']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # The following are specific to Black, you probably don't want those.
-  | blib2to3
-  | tests/data
-  | profiling
-)/
-'''
-# We use preview style for formatting Black itself. If you
-# want stable formatting across releases, you should keep
-# this off.
+
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
 preview = true
 
 [tool.pytest.ini_options]
