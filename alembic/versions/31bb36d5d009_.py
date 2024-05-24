@@ -1,10 +1,11 @@
 """
 
 Revision ID: 31bb36d5d009
-Revises: 
+Revises:
 Create Date: 2023-03-07 15:58:23.255368
 
 """
+
 import sqlalchemy as sa
 import sqlalchemy_utils
 
