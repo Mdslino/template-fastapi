@@ -1,18 +1,21 @@
 import logging
+import time
 from logging.config import dictConfig
 
-from fastapi import FastAPI
+import structlog
+from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from fastapi import FastAPI, Request, Response
 from fastapi.logger import logger as fastapi_logger
+from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
 from app.core.endpoints import router
+from app.custom_logging import setup_logging
 
-gunicorn_error_logger = logging.getLogger("gunicorn.error")
-gunicorn_logger = logging.getLogger("gunicorn")
-uvicorn_access_logger = logging.getLogger("uvicorn.access")
-uvicorn_access_logger.handlers = gunicorn_error_logger.handlers
+logger = structlog.get_logger(__name__)
 
-fastapi_logger.handlers = gunicorn_error_logger.handlers
+setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
+access_logger = structlog.stdlib.get_logger("api.access")
 
 
 def create_app():
@@ -27,17 +30,63 @@ def create_app():
 
     @fastapi_app.get("/healthcheck")
     def healthcheck():
-        fastapi_logger.info("App is healthy!")
+        logger.info("App is healthy!")
         return {"status": "ok"}
 
     return fastapi_app
 
 
+app = create_app()
+
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next) -> Response:
+    structlog.contextvars.clear_contextvars()
+
+    request_id = correlation_id.get()
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+
+    start_time = time.perf_counter_ns()
+    response = Response(status_code=500)
+    try:
+        response = await call_next(request)
+    except Exception:
+        structlog.stdlib.get_logger("api.error").exception("Uncaught exception")
+        raise
+    finally:
+        process_time = time.perf_counter_ns() - start_time
+        status_code = response.status_code
+        url = get_path_with_query_string(request.scope)
+        client_host = request.client.host
+        client_port = request.client.port
+        http_method = request.method
+        http_version = request.scope["http_version"]
+
+        access_logger.info(
+            f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code} {process_time / 1_000_000:.2f}ms""",
+            http={
+                "url": url,
+                "status_code": status_code,
+                "method": http_method,
+                "request_id": request_id,
+                "version": http_version,
+            },
+            network={"client": {"ip": client_host, "port": client_port}},
+            duration=process_time
+        )
+        response.headers["X-Request-ID"] = str(request_id)
+        response.headers["X-Process-Time"] = str(process_time / 1_000_000_000)
+
+        return response
+
+
+app.add_middleware(CorrelationIdMiddleware)
+
 if __name__ == "__main__":  # pragma: no cover
     # This is only for local development.
     import uvicorn
 
-    fastapi_logger.setLevel(gunicorn_logger.level)
+    fastapi_logger.setLevel(logger.level)
     app = create_app()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 else:

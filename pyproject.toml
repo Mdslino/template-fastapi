@@ -18,6 +18,8 @@ sqlalchemy = "^2.0.0"
 sqlalchemy-utils = "^0.41.1"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 pydantic-settings = "^2.0.1"
+structlog = "^24.1.0"
+asgi-correlation-id = "^4.3.1"
 
 
 [tool.poetry.group.test.dependencies]
@@ -79,6 +81,36 @@ exclude = [
 ]
 
 preview = true
+
+[tool.ruff.lint]
+fixable = ["ALL"]
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
 
 [tool.pytest.ini_options]
 env_files = [

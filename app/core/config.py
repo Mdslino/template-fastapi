@@ -24,6 +24,7 @@ class Settings(BaseSettings):
         "version": 1,
         "disable_existing_loggers": False,
     }
+    JSON_LOGS: bool = False
 
     @field_validator("SQLALCHEMY_DATABASE_URI")
     def assemble_db_connection(

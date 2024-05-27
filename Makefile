@@ -38,7 +38,7 @@ run:
 	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 -w 4 --preload --error-logfile=- --log-level info
 
 run-dev:
-	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --preload --reload --access-logfile=- --error-logfile=- --log-level debug
+	@uvicorn app.main:create_app --factory --reload
 
 run-db:
 	docker-compose up -d migrations
