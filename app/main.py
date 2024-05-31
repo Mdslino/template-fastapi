@@ -30,7 +30,6 @@ def create_app():
 
     @fastapi_app.get("/healthcheck")
     def healthcheck():
-        logger.info("App is healthy!")
         return {"status": "ok"}
 
     return fastapi_app
@@ -74,7 +73,6 @@ async def logging_middleware(request: Request, call_next) -> Response:
             network={"client": {"ip": client_host, "port": client_port}},
             duration=process_time
         )
-        response.headers["X-Request-ID"] = str(request_id)
         response.headers["X-Process-Time"] = str(process_time / 1_000_000_000)
 
         return response

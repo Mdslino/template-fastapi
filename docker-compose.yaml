@@ -1,5 +1,3 @@
-version: '3'
-
 x-app: &x-app
   build:
     context: .
@@ -34,6 +32,8 @@ services:
     <<: *x-app
     container_name: migrations
     command: make migrate
+    env_file:
+      - .docker.env
     depends_on:
       db:
         condition: service_healthy

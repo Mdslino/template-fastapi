@@ -28,17 +28,17 @@ clean:
 
 # Test Section
 test:
-	pytest tests/ -vv
+	@docker compose run app pytest tests/ -vv
 
 test-coverage:
-	pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
+	@docker compose run app pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
 
 #Run Section
 run:
-	@gunicorn "app.main:create_app()" -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 -w 4 --preload --error-logfile=- --log-level info
+	@uvicorn app.main:app --workers 4 --host 0.0.0.0
 
 run-dev:
-	@uvicorn app.main:create_app --factory --reload
+	@uvicorn app.main:app --reload --host 0.0.0.0
 
 run-db:
 	docker-compose up -d migrations

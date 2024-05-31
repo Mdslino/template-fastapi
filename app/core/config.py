@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     SECRET_KEY: str = "secret"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    POSTGRES_PROTOCOL: str = "postgresql+psycopg2"
-    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_PROTOCOL: str = "postgresql"
+    POSTGRES_SERVER: str = "db"
     POSTGRES_PORT: str = "5432"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
