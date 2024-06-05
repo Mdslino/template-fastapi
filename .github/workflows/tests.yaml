@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   test:
     services:
-      postgres:
+      db:
         image: postgres:alpine
         env:
           POSTGRES_USER: postgres
