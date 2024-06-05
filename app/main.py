@@ -4,13 +4,16 @@ from logging.config import dictConfig
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
-from fastapi import FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.logger import logger as fastapi_logger
+from sqlalchemy import text
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
+from app.core.deps import get_db
 from app.core.endpoints import router
 from app.custom_logging import setup_logging
+from app.db.session import SessionLocal
 
 logger = structlog.get_logger(__name__)
 
@@ -29,8 +32,15 @@ def create_app():
     fastapi_app.include_router(router, prefix=settings.API_V1_STR)
 
     @fastapi_app.get("/healthcheck")
-    def healthcheck():
-        return {"status": "ok"}
+    def healthcheck(db: SessionLocal = Depends(get_db)):
+        db_status = "ok"
+        try:
+            db.execute(text("SELECT 1"))
+        except Exception as e:
+            db_status = "error"
+            logger.error("Database is not available", exc_info=e)
+
+        return {"app": "ok", "db": db_status, "version": settings.APP_VERSION}
 
     return fastapi_app
 
