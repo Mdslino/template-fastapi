@@ -89,35 +89,3 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
         )
 
     sys.excepthook = handle_exception
-
-
-def _configure_default_logging_by_custom(shared_processors, logs_render):
-    handler = logging.StreamHandler()
-
-    # Use `ProcessorFormatter` to format all `logging` entries.
-    formatter = structlog.stdlib.ProcessorFormatter(
-        foreign_pre_chain=shared_processors,
-        processors=[
-            _extract_from_record,
-            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
-            logs_render,
-        ],
-    )
-
-    handler.setFormatter(formatter)
-
-    gunicorn_error_logger = logging.getLogger("gunicorn.error")
-    gunicorn_logger = logging.getLogger("gunicorn")
-    gunicorn_logger.addHandler(handler)
-    gunicorn_error_logger.addHandler(handler)
-
-    uvicorn_access_logger = logging.getLogger("uvicorn.access")
-    uvicorn_access_logger.addHandler(handler)
-
-
-def _extract_from_record(_, __, event_dict):
-    # Extract thread and process names and add them to the event dict.
-    record = event_dict["_record"]
-    event_dict["thread_name"] = record.threadName
-    event_dict["process_name"] = record.processName
-    return event_dict
