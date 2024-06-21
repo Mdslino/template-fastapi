@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import BigInteger, Column, DateTime, text
 from sqlalchemy.orm import as_declarative, declared_attr
@@ -28,13 +28,13 @@ class BaseModel(Base):  # type: ignore
     created_at = Column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=datetime.now(UTC),
         server_default=text("now()"),
     )
     updated_at = Column(
         DateTime,
         nullable=True,
         default=None,
-        onupdate=datetime.utcnow,
+        onupdate=datetime.now(UTC),
         server_default=text("now()"),
     )
