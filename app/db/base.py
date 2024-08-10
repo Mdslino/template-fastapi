@@ -1,3 +1,3 @@
-from app.db.base_class import Base, BaseModel  # noqa
+from app.db.base_class import Base  # noqa
 
-__all__ = ("Base", "BaseModel")
+__all__ = ("Base",)
