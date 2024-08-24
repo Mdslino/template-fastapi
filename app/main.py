@@ -7,13 +7,13 @@ from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
+from sqlmodel import Session
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
 from app.core.deps import get_db
 from app.core.endpoints import router
 from app.custom_logging import setup_logging
-from app.db.session import SessionLocal
 
 logger = structlog.get_logger(__name__)
 
@@ -32,7 +32,7 @@ def create_app():
     fastapi_app.include_router(router, prefix=settings.API_V1_STR)
 
     @fastapi_app.get("/healthcheck")
-    def healthcheck(db: SessionLocal = Depends(get_db)):
+    def healthcheck(db: Session = Depends(get_db)):
         db_status = "ok"
         try:
             db.execute(text("SELECT 1"))
