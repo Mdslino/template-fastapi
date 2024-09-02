@@ -49,30 +49,11 @@ run-docker:
 	docker-compose up -d
 
 # Lint Section
-ruff:
-	@ruff check . --fix
-
-isort:
-	@isort .
-
-format-code: ruff isort
-
-sort-imports:
-	@isort .
-
-flake8:
-	@flake8 app/
-
 mypy:
 	@mypy app/
 
-ruff-check:
-	@ruff check .
-
-isort-check:
-	@isort --check-only app/
-
-lint: ruff-check isort-check
+lint:
+	@./scripts/lint.sh $(MODE)
 
 # Migration Section
 
