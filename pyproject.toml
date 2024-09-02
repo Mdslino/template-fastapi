@@ -19,6 +19,7 @@ sqlalchemy = "^2.0.32"
 sqlalchemy-utils = "^0.41.1"
 structlog = "^24.2.0"
 uvicorn = {extras = ["standard"], version = "^0.30.0"}
+supabase = "^2.7.4"
 
 
 [tool.poetry.group.test.dependencies]

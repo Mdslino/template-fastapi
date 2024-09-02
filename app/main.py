@@ -7,11 +7,11 @@ from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
-from app.core.deps import get_db
+from app.core.deps import get_db, UserDep
 from app.core.endpoints import router
 from app.custom_logging import setup_logging
 
@@ -41,6 +41,10 @@ def create_app():
             logger.error('Database is not available', exc_info=e)
 
         return {'app': 'ok', 'db': db_status, 'version': settings.APP_VERSION}
+
+    @fastapi_app.get('/auth-healthcheck')
+    def auth_healthcheck(user: UserDep):
+        return user
 
     return fastapi_app
 

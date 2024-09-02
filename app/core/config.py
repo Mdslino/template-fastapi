@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     }
     JSON_LOGS: bool = False
 
+    SUPABASE_SERVICE_KEY: str = ''
+    SUPABASE_JWT_SECRET: str = ''
+    SUPABASE_URL: str = ''
+
     @field_validator('SQLALCHEMY_DATABASE_URI')
     def assemble_db_connection(
         cls, v: Optional[PostgresDsn], values: FieldValidationInfo
