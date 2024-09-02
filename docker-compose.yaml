@@ -3,6 +3,7 @@ x-app: &x-app
     context: .
     dockerfile: Dockerfile
   env_file:
+    - .env
     - .docker.env
   depends_on:
     db:
@@ -14,7 +15,7 @@ services:
     container_name: app
     restart: always
     ports:
-      - 8000:8000
+      - "8000:8000"
     command: make run
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
