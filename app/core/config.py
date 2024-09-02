@@ -7,29 +7,29 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "FastAPI"
-    APP_VERSION: str = "0.1.0"
+    APP_NAME: str = 'FastAPI'
+    APP_VERSION: str = '0.1.0'
     DEBUG: bool = False
-    SECRET_KEY: str = "secret"
+    SECRET_KEY: str = 'secret'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    POSTGRES_PROTOCOL: str = "postgresql"
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_PORT: str = "5432"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "postgres"
+    POSTGRES_PROTOCOL: str = 'postgresql'
+    POSTGRES_SERVER: str = 'localhost'
+    POSTGRES_PORT: str = '5432'
+    POSTGRES_USER: str = 'postgres'
+    POSTGRES_PASSWORD: str = 'postgres'
+    POSTGRES_DB: str = 'postgres'
     SQLALCHEMY_DATABASE_URI: Optional[PostgresDsn] = None
-    API_V1_STR: str = "/api/v1"
-    LOG_LEVEL: str = "INFO"
+    API_V1_STR: str = '/api/v1'
+    LOG_LEVEL: str = 'INFO'
     LOGGING_CONFIG: Dict[str, Any] = {
-        "version": 1,
-        "disable_existing_loggers": False,
+        'version': 1,
+        'disable_existing_loggers': False,
     }
     JSON_LOGS: bool = False
 
-    @field_validator("SQLALCHEMY_DATABASE_URI")
+    @field_validator('SQLALCHEMY_DATABASE_URI')
     def assemble_db_connection(
-            cls, v: Optional[PostgresDsn], values: FieldValidationInfo
+        cls, v: Optional[PostgresDsn], values: FieldValidationInfo
     ) -> Any:
         if type(v) is MultiHostUrl or isinstance(v, str):
             return v

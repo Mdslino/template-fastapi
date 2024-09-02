@@ -20,7 +20,7 @@ def client(app):
     return TestClient(app)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope='session', autouse=True)
 def create_test_database():
     # Create the database and tables if they don't exist
     if database_exists(engine.url):
@@ -41,7 +41,7 @@ def create_test_database():
     yield
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(scope='function', autouse=True)
 def reset_db():
     meta = Base.metadata
     with contextlib.closing(engine.connect()) as connection:
@@ -62,4 +62,4 @@ def db():
 
 @pytest.fixture
 def anyio_backend():
-    return "asyncio"
+    return 'asyncio'

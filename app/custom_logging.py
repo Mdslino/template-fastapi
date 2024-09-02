@@ -5,8 +5,8 @@ import structlog
 from structlog.typing import Processor
 
 
-def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
-    timestamper = structlog.processors.TimeStamper(fmt="iso")
+def setup_logging(json_logs: bool = False, log_level: str = 'INFO'):
+    timestamper = structlog.processors.TimeStamper(fmt='iso')
 
     shared_processors: list[Processor] = [
         structlog.contextvars.merge_contextvars,
@@ -60,7 +60,7 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level.upper())
 
-    for _log in ["uvicorn", "uvicorn.error"]:
+    for _log in ['uvicorn', 'uvicorn.error']:
         # Clear the log handlers for uvicorn loggers, and enable propagation
         # so the messages are caught by our root logger and formatted correctly
         # by structlog
@@ -71,8 +71,8 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
     # in the structured log (see the `logging_middleware` in main.py), we clear
     # the handlers and prevent the logs to propagate to a logger higher up in the
     # hierarchy (effectively rendering them silent).
-    logging.getLogger("uvicorn.access").handlers.clear()
-    logging.getLogger("uvicorn.access").propagate = False
+    logging.getLogger('uvicorn.access').handlers.clear()
+    logging.getLogger('uvicorn.access').propagate = False
 
     def handle_exception(exc_type, exc_value, exc_traceback):
         """
@@ -85,7 +85,7 @@ def setup_logging(json_logs: bool = False, log_level: str = "INFO"):
             return
 
         root_logger.error(
-            "Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback)
+            'Uncaught exception', exc_info=(exc_type, exc_value, exc_traceback)
         )
 
     sys.excepthook = handle_exception

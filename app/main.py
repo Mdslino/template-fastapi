@@ -18,7 +18,7 @@ from app.custom_logging import setup_logging
 logger = structlog.get_logger(__name__)
 
 setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
-access_logger = structlog.stdlib.get_logger("api.access")
+access_logger = structlog.stdlib.get_logger('api.access')
 
 
 def create_app():
@@ -31,16 +31,16 @@ def create_app():
 
     fastapi_app.include_router(router, prefix=settings.API_V1_STR)
 
-    @fastapi_app.get("/healthcheck")
+    @fastapi_app.get('/healthcheck')
     def healthcheck(db: Session = Depends(get_db)):
-        db_status = "ok"
+        db_status = 'ok'
         try:
-            db.execute(text("SELECT 1"))
+            db.execute(text('SELECT 1'))
         except Exception as e:
-            db_status = "error"
-            logger.error("Database is not available", exc_info=e)
+            db_status = 'error'
+            logger.error('Database is not available', exc_info=e)
 
-        return {"app": "ok", "db": db_status, "version": settings.APP_VERSION}
+        return {'app': 'ok', 'db': db_status, 'version': settings.APP_VERSION}
 
     return fastapi_app
 
@@ -48,7 +48,7 @@ def create_app():
 app = create_app()
 
 
-@app.middleware("http")
+@app.middleware('http')
 async def logging_middleware(request: Request, call_next) -> Response:
     structlog.contextvars.clear_contextvars()
 
@@ -60,7 +60,9 @@ async def logging_middleware(request: Request, call_next) -> Response:
     try:
         response = await call_next(request)
     except Exception:
-        structlog.stdlib.get_logger("api.error").exception("Uncaught exception")
+        structlog.stdlib.get_logger('api.error').exception(
+            'Uncaught exception'
+        )
         raise
     finally:
         process_time = time.perf_counter_ns() - start_time
@@ -69,33 +71,33 @@ async def logging_middleware(request: Request, call_next) -> Response:
         client_host = request.client.host
         client_port = request.client.port
         http_method = request.method
-        http_version = request.scope["http_version"]
+        http_version = request.scope['http_version']
 
         access_logger.info(
             f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code} {process_time / 1_000_000:.2f}ms""",
             http={
-                "url": url,
-                "status_code": status_code,
-                "method": http_method,
-                "request_id": request_id,
-                "version": http_version,
+                'url': url,
+                'status_code': status_code,
+                'method': http_method,
+                'request_id': request_id,
+                'version': http_version,
             },
-            network={"client": {"ip": client_host, "port": client_port}},
-            duration=process_time
+            network={'client': {'ip': client_host, 'port': client_port}},
+            duration=process_time,
         )
-        response.headers["X-Process-Time"] = str(process_time / 1_000_000_000)
+        response.headers['X-Process-Time'] = str(process_time / 1_000_000_000)
 
         return response
 
 
 app.add_middleware(CorrelationIdMiddleware)
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == '__main__':  # pragma: no cover
     # This is only for local development.
     import uvicorn
 
     fastapi_logger.setLevel(logger.level)
     app = create_app()
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
 else:
     fastapi_logger.setLevel(logging.DEBUG)
