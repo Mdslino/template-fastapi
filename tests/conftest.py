@@ -6,8 +6,8 @@ from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists
 
 from app.db.base import Base
-from app.db.session import SessionLocal, engine
 from app.main import create_app
+from tests.factories.session import Session, engine
 
 
 @pytest.fixture
@@ -30,10 +30,10 @@ def create_test_database():
         create_database(engine.url)
 
     # Create UUID extension
-    db = SessionLocal()
-    db.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'))
-    db.commit()
-    db.close()
+    database = Session()
+    database.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";'))
+    database.commit()
+    database.close()
 
     # Create tables
     Base.metadata.create_all(bind=engine)  # type: ignore
