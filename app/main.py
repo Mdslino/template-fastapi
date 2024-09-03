@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
-from app.core.deps import get_db, UserDep
+from app.core.deps import UserDep, get_db
 from app.core.endpoints import router
 from app.custom_logging import setup_logging
 
