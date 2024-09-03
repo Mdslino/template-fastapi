@@ -53,11 +53,11 @@ def reset_db():
 
 @pytest.fixture
 def db():
-    db = SessionLocal()
+    database = Session()
     try:
-        yield db
+        yield database
     finally:
-        db.close()
+        database.close()
 
 
 @pytest.fixture
