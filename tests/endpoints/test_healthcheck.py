@@ -1,5 +1,5 @@
-from unittest.mock import ANY
 from unittest import mock
+from unittest.mock import ANY
 
 import pytest
 
@@ -14,9 +14,7 @@ def test_healthcheck(client):
 def test_authenticated_healthcheck(client):
     response = client.get(
         '/auth-healthcheck',
-        headers={
-            'Authorization': 'Bearer anykey'
-        },
+        headers={'Authorization': 'Bearer anykey'},
     )
 
     assert response.status_code == 200

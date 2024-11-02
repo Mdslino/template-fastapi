@@ -136,3 +136,5 @@ dmypy.json
 .DS_Store
 
 ./.ruff_cache/*
+
+service-account-file.json

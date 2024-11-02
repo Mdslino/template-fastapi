@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from uvicorn.protocols.utils import get_path_with_query_string
 
 from app.core.config import settings
-from app.core.deps import UserDep, get_db
+from app.core.deps import get_db
 from app.core.endpoints import router
 from app.custom_logging import setup_logging
 
@@ -41,10 +41,6 @@ def create_app():
             logger.error('Database is not available', exc_info=e)
 
         return {'app': 'ok', 'db': db_status, 'version': settings.APP_VERSION}
-
-    @fastapi_app.get('/auth-healthcheck')
-    def auth_healthcheck(user: UserDep):
-        return user
 
     return fastapi_app
 
@@ -87,7 +83,7 @@ async def logging_middleware(request: Request, call_next) -> Response:
                 'version': http_version,
             },
             network={'client': {'ip': client_host, 'port': client_port}},
-            duration=process_time,
+            duration=f'{process_time / 1_000_000:.2f}ms',
         )
         response.headers['X-Process-Time'] = str(process_time / 1_000_000_000)
 

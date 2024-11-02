@@ -58,10 +58,13 @@ lint:
 # Migration Section
 
 migrate:
-	@alembic upgrade head
+	@uv run alembic upgrade head
+
+docker-migrate:
+	@docker compose run app alembic upgrade head
 
 migration:
-	@alembic revision --autogenerate -m "$(m)"
+	@uv run alembic revision --autogenerate -m "$(m)"
 
 migrate-down:
-	@alembic downgrade -1
+	@uv run alembic downgrade -1

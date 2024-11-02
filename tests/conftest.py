@@ -10,12 +10,14 @@ from app.db.base import Base
 from app.main import create_app
 from tests.factories.session import Session, engine
 
+
 @pytest.fixture(scope='module')
 def vcr_config():
     return {
         'filter_headers': ['authorization', 'apikey'],
         'filter_query_parameters': ['apikey'],
     }
+
 
 @pytest.fixture
 def app():
@@ -70,6 +72,7 @@ def db():
 @pytest.fixture
 def anyio_backend():
     return 'asyncio'
+
 
 @pytest.fixture
 def supabase_user():
