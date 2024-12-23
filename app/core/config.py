@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     ) -> Any:
         if type(v) is MultiHostUrl or isinstance(v, str):
             return v
-        postgres_dsn = f"{values.data['POSTGRES_PROTOCOL']}://{values.data['POSTGRES_USER']}:{values.data['POSTGRES_PASSWORD']}@{values.data['POSTGRES_SERVER']}:{values.data['POSTGRES_PORT']}/{values.data['POSTGRES_DB']}"
+        postgres_dsn = f'{values.data["POSTGRES_PROTOCOL"]}://{values.data["POSTGRES_USER"]}:{values.data["POSTGRES_PASSWORD"]}@{values.data["POSTGRES_SERVER"]}:{values.data["POSTGRES_PORT"]}/{values.data["POSTGRES_DB"]}'
         return PostgresDsn(postgres_dsn)
 
 
