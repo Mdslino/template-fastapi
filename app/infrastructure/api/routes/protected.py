@@ -53,7 +53,7 @@ def get_current_user_info(user: CurrentUserDep) -> dict:
 @router.get('/admin')
 def admin_only_route(
     user: CurrentUserDep,
-    _: None = Depends(require_roles(['admin', 'superuser'])),
+    _: None = require_roles(['admin', 'superuser']),
 ) -> dict:
     """
     Admin-only endpoint.
@@ -84,7 +84,7 @@ def admin_only_route(
 @router.get('/write-data')
 def write_data_route(
     user: CurrentUserDep,
-    _: None = Depends(require_permissions(['write:data'])),
+    _: None = require_permissions(['write:data']),
 ) -> dict:
     """
     Permission-protected endpoint.

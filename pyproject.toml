@@ -22,6 +22,15 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
 ]
 
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["tests*", "alembic*"]
+
 [tool.uv]
 dev-dependencies = [
     "faker>=30.6.0",
