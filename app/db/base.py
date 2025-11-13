@@ -1,3 +1,3 @@
-from app.db.base_class import Base  # noqa
+from shared.models import Base, BaseDBModel  # noqa
 
-__all__ = ('Base',)
+__all__ = ('Base', 'BaseDBModel')

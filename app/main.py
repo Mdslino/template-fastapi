@@ -1,38 +1,62 @@
+"""
+FastAPI application entry point.
+
+This module initializes and configures the FastAPI application with
+middleware, logging, and routes.
+"""
+
 import logging
-import time
 from logging.config import dictConfig
 
 import structlog
-from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
-from fastapi import Depends, FastAPI, Request, Response
+from asgi_correlation_id import CorrelationIdMiddleware
+from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
-from sqlalchemy.orm import Session
-from uvicorn.protocols.utils import get_path_with_query_string
 
-from app.core.config import settings
-from app.core.deps import get_db
-from app.core.endpoints import router
-from app.custom_logging import setup_logging
-
-logger = structlog.get_logger(__name__)
-
-setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
-access_logger = structlog.stdlib.get_logger('api.access')
+from app.auth.dependencies import SessionDep
+from core.config import settings
+from core.logging import setup_logging
+from core.middleware import logging_middleware
 
 
-def create_app():
+def create_app() -> FastAPI:
+    """
+    Create and configure the FastAPI application.
+
+    Returns:
+        Configured FastAPI application instance
+    """
+    # Setup logging
+    setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
+    logger = structlog.get_logger(__name__)
+    
     dictConfig(settings.LOGGING_CONFIG)
     fastapi_app = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
+        description='FastAPI Template with OAuth2 Authentication',
     )
 
-    fastapi_app.include_router(router, prefix=settings.API_V1_STR)
+    # Include API routers
+    from app.api.v1 import router as api_v1_router
 
-    @fastapi_app.get('/healthcheck')
-    def healthcheck(db: Session = Depends(get_db)):
+    fastapi_app.include_router(api_v1_router)
+
+    @fastapi_app.get('/healthcheck', tags=['health'])
+    def healthcheck(db: SessionDep) -> dict:
+        """
+        Health check endpoint.
+
+        Verifies application and database connectivity.
+
+        Args:
+            db: Database session (injected)
+
+        Returns:
+            Health status of app and database
+        """
         db_status = 'ok'
         try:
             db.execute(text('SELECT 1'))
@@ -40,64 +64,27 @@ def create_app():
             db_status = 'error'
             logger.error('Database is not available', exc_info=e)
 
-        return {'app': 'ok', 'db': db_status, 'version': settings.APP_VERSION}
+        return {
+            'app': 'ok',
+            'db': db_status,
+            'version': settings.APP_VERSION,
+        }
+
+    # Add middleware
+    fastapi_app.middleware('http')(logging_middleware)
+    fastapi_app.add_middleware(CorrelationIdMiddleware)
 
     return fastapi_app
 
 
+# Create app instance for production
 app = create_app()
-
-
-@app.middleware('http')
-async def logging_middleware(request: Request, call_next) -> Response:
-    structlog.contextvars.clear_contextvars()
-
-    request_id = correlation_id.get()
-    structlog.contextvars.bind_contextvars(request_id=request_id)
-
-    start_time = time.perf_counter_ns()
-    response = Response(status_code=500)
-    try:
-        response = await call_next(request)
-    except Exception:
-        structlog.stdlib.get_logger('api.error').exception(
-            'Uncaught exception'
-        )
-        raise
-    finally:
-        process_time = time.perf_counter_ns() - start_time
-        status_code = response.status_code
-        url = get_path_with_query_string(request.scope)
-        client_host = request.client.host
-        client_port = request.client.port
-        http_method = request.method
-        http_version = request.scope['http_version']
-
-        access_logger.info(
-            f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code} {process_time / 1_000_000:.2f}ms""",
-            http={
-                'url': url,
-                'status_code': status_code,
-                'method': http_method,
-                'request_id': request_id,
-                'version': http_version,
-            },
-            network={'client': {'ip': client_host, 'port': client_port}},
-            duration=f'{process_time / 1_000_000:.2f}ms',
-        )
-        response.headers['X-Process-Time'] = str(process_time / 1_000_000_000)
-
-        return response
-
-
-app.add_middleware(CorrelationIdMiddleware)
 
 if __name__ == '__main__':  # pragma: no cover
     # This is only for local development.
     import uvicorn
 
-    fastapi_logger.setLevel(logger.level)
-    app = create_app()
+    fastapi_logger.setLevel(logging.DEBUG)
     uvicorn.run(app, host='0.0.0.0', port=8000)
 else:
     fastapi_logger.setLevel(logging.DEBUG)
