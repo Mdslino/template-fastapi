@@ -69,8 +69,6 @@ async def logging_middleware(request: Request, call_next) -> Response:
             network={'client': {'ip': client_host, 'port': client_port}},
             duration=f'{process_time / 1_000_000:.2f}ms',
         )
-        response.headers['X-Process-Time'] = str(
-            process_time / 1_000_000_000
-        )
+        response.headers['X-Process-Time'] = str(process_time / 1_000_000_000)
 
         return response

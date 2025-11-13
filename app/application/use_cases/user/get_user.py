@@ -52,16 +52,12 @@ class GetUserUseCase:
             user_option = self.user_repository.find_by_id(user_id)
 
             if user_option == Nothing:
-                return Failure(
-                    EntityNotFoundException('User', str(user_id))
-                )
+                return Failure(EntityNotFoundException('User', str(user_id)))
 
             # Extract user from Option (we know it's Some here)
             user = user_option.value_or(None)
             if user is None:
-                return Failure(
-                    EntityNotFoundException('User', str(user_id))
-                )
+                return Failure(EntityNotFoundException('User', str(user_id)))
 
             return Success(self._to_dto(user))
 

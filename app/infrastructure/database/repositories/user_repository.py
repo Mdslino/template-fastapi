@@ -70,9 +70,7 @@ class SQLAlchemyUserRepository(UserRepository):
         """
         try:
             # Check if user exists
-            stmt = select(UserModel).where(
-                UserModel.external_id == user.id
-            )
+            stmt = select(UserModel).where(UserModel.external_id == user.id)
             db_user = self.session.scalar(stmt)
 
             if db_user:
@@ -122,9 +120,7 @@ class SQLAlchemyUserRepository(UserRepository):
             Option containing the user if found, Nothing otherwise
         """
         try:
-            stmt = select(UserModel).where(
-                UserModel.external_id == user_id
-            )
+            stmt = select(UserModel).where(UserModel.external_id == user_id)
             db_user = self.session.scalar(stmt)
 
             if db_user:
@@ -214,9 +210,7 @@ class SQLAlchemyUserRepository(UserRepository):
             Either containing True if deleted, or an exception
         """
         try:
-            stmt = select(UserModel).where(
-                UserModel.external_id == user_id
-            )
+            stmt = select(UserModel).where(UserModel.external_id == user_id)
             db_user = self.session.scalar(stmt)
 
             if db_user:

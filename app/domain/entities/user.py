@@ -70,9 +70,7 @@ class User(BaseModel):
         Returns:
             New User entity with generated ID and timestamps
         """
-        return cls(
-            username=username, email=email, full_name=full_name
-        )
+        return cls(username=username, email=email, full_name=full_name)
 
     def deactivate(self) -> None:
         """

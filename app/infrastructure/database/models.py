@@ -8,6 +8,7 @@ for all database models.
 import uuid
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -35,11 +36,16 @@ class BaseModel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     external_id: Mapped[uuid.UUID] = mapped_column(
-        index=True, unique=True, default_factory=uuid.uuid4
+        index=True, unique=True, default=uuid.uuid4
     )
-    created_at: Mapped[datetime] = mapped_column(default_factory=datetime.now)
+    created_at: Mapped[datetime] = mapped_column(
+        default=func.now(), server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        default_factory=datetime.now, onupdate=datetime.now
+        default=func.now(),
+        server_default=func.now(),
+        onupdate=func.now(),
+        server_onupdate=func.now(),
     )
 
     def __repr__(self) -> str:

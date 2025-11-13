@@ -67,9 +67,7 @@ class CreateUserUseCase:
             email = Email(dto.email)
 
             # Check for duplicates
-            existing_user = self.user_repository.find_by_username(
-                dto.username
-            )
+            existing_user = self.user_repository.find_by_username(dto.username)
             if existing_user != Nothing:  # noqa: F821
                 return Failure(
                     DuplicateEntityException('User', 'username', dto.username)

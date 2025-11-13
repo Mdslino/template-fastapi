@@ -52,13 +52,9 @@ class Username(BaseModel):
         if not v:
             raise ValidationException('Username cannot be empty')
         if len(v) < 3:
-            raise ValidationException(
-                'Username must be at least 3 characters'
-            )
+            raise ValidationException('Username must be at least 3 characters')
         if len(v) > 50:
-            raise ValidationException(
-                'Username must be at most 50 characters'
-            )
+            raise ValidationException('Username must be at most 50 characters')
         if not all(c.isalnum() or c == '_' for c in v):
             raise ValidationException(
                 'Username can only contain letters, numbers, and underscores'
