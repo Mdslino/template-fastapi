@@ -5,8 +5,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists
 
-from app.infrastructure.database.models import Base
 from app.main import create_app
+from shared.models import Base
 from tests.factories.session import Session, engine
 
 
