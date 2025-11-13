@@ -1,56 +1,56 @@
-# Modelo de uma Aplicação Web com FastAPI
+# FastAPI Web Application Template
 
-Template FastAPI seguindo princípios de Clean Architecture, SOLID e Programação Funcional com **Autenticação OAuth2 Agnóstica**.
+FastAPI template following Clean Architecture, SOLID principles, and Functional Programming with **Provider-Agnostic OAuth2 Authentication**.
 
-## 🏗️ Arquitetura
+## 🏗️ Architecture
 
-Este projeto segue **Clean Architecture** com separação clara de responsabilidades:
+This project follows **Clean Architecture** with clear separation of responsibilities:
 
-- **`domain/`**: Entidades de negócio e regras empresariais (AuthenticatedUser, Token)
-- **`application/`**: Casos de uso e lógica de aplicação (AuthenticationService, OAuth2Provider interface)
-- **`infrastructure/`**: Frameworks, banco de dados e APIs (JWT provider, routes, dependencies)
-- **`shared/`**: Utilitários compartilhados (logging, funcional, middleware)
+- **`domain/`**: Business entities and rules (AuthenticatedUser, Token)
+- **`application/`**: Use cases and application logic (AuthenticationService, OAuth2Provider interface)
+- **`infrastructure/`**: Frameworks, database, and APIs (JWT provider, routes, dependencies)
+- **`shared/`**: Shared utilities (logging, functional, middleware)
 
-Para mais detalhes, veja [ARCHITECTURE.md](./ARCHITECTURE.md).
+For more details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## ✨ Características
+## ✨ Features
 
-- ✅ **Clean Architecture**: Separação clara de camadas e responsabilidades
-- ✅ **SOLID Principles**: Código manutenível e extensível
-- ✅ **OAuth2 Agnostic**: Funciona com qualquer provedor OAuth2 (Supabase, Firebase, Cognito, Auth0)
-- ✅ **Dependency Injection**: Uso extensivo de DI do FastAPI
-- ✅ **Pydantic**: Validação em todas as camadas
-- ✅ **Functional Programming**: Either/Result monads para tratamento de erros
-- ✅ **Type Hints**: Tipagem completa em todo o código
-- ✅ **Structured Logging**: Logs estruturados com structlog
-- ✅ **JWT Verification**: Verificação segura de tokens JWT
-- ✅ **Role & Permission Based Access**: Controle de acesso por roles e permissões
+- ✅ **Clean Architecture**: Clear layer separation and responsibilities
+- ✅ **SOLID Principles**: Maintainable and extensible code
+- ✅ **OAuth2 Agnostic**: Works with any OAuth2 provider (Supabase, Firebase, Cognito, Auth0)
+- ✅ **Dependency Injection**: Extensive use of FastAPI DI
+- ✅ **Pydantic**: Validation across all layers
+- ✅ **Functional Programming**: Either/Result monads for error handling
+- ✅ **Type Hints**: Complete typing throughout the codebase
+- ✅ **Structured Logging**: Structured logs with structlog
+- ✅ **JWT Verification**: Secure JWT token verification
+- ✅ **Role & Permission Based Access**: Access control by roles and permissions
 
-## 🔐 Autenticação OAuth2
+## 🔐 OAuth2 Authentication
 
-O template suporta autenticação OAuth2 de forma **agnóstica ao provedor**:
+The template supports OAuth2 authentication in a **provider-agnostic** way:
 
-### Provedores Suportados
+### Supported Providers
 - Supabase
 - Firebase
 - AWS Cognito  
 - Auth0
 - Keycloak
-- Qualquer provedor OAuth2 que use JWT
+- Any OAuth2 provider that uses JWT
 
-### Configuração
+### Configuration
 
-Configure as variáveis de ambiente:
+Set environment variables:
 
 ```bash
 OAUTH2_JWKS_URL=https://your-provider.com/.well-known/jwks.json
 OAUTH2_ISSUER=https://your-provider.com
-OAUTH2_AUDIENCE=your-audience  # Opcional
+OAUTH2_AUDIENCE=your-audience  # Optional
 ```
 
-Veja [OAUTH2_SETUP.md](./OAUTH2_SETUP.md) para configuração detalhada de cada provedor.
+See [OAUTH2_SETUP.md](./OAUTH2_SETUP.md) for detailed configuration for each provider.
 
-### Endpoints Protegidos
+### Protected Endpoints
 
 ```python
 from app.infrastructure.api.dependencies import CurrentUserDep, require_roles
@@ -67,156 +67,156 @@ def admin_route(
     return {"message": "Admin only"}
 ```
 
-## 📋 Requisitos
+## 📋 Requirements
 
 - Python >= 3.13
 - PostgreSQL
-- Poetry ou uv para gerenciamento de dependências
+- Poetry or uv for dependency management
 
-## Como executar
+## How to Run
 
-### Instalar dependências
+### Install Dependencies
 
 ```bash
 make install
 ```
 
-### Configurar OAuth2
+### Configure OAuth2
 
-1. Copie `.example.env` para `.env`
-2. Configure as variáveis OAuth2:
+1. Copy `.example.env` to `.env`
+2. Configure OAuth2 variables:
    ```bash
-   OAUTH2_JWKS_URL=<seu-provider>
-   OAUTH2_ISSUER=<seu-issuer>
+   OAUTH2_JWKS_URL=<your-provider>
+   OAUTH2_ISSUER=<your-issuer>
    ```
 
-### Executar a aplicação
-- Certifique-se de que o arquivo `.env` esteja configurado corretamente.
-- Execute o banco de dados com o comando `make run-db`.
+### Run Application
+- Ensure the `.env` file is configured correctly.
+- Start the database with `make run-db`.
 
 ```bash
 make run
 ```
 
-### Executar em Docker
+### Run with Docker
 
 ```bash
 make docker-run
 ```
 
-### Executar os testes
+### Run Tests
 
 ```bash
 make test
 ```
 
-### Executar o linter
+### Run Linter
 
 ```bash
 make lint
 ```
 
-### Executar o formatter
+### Run Formatter
 
 ```bash
 make format-code
 ```
 
-## 📁 Estrutura do Projeto
+## 📁 Project Structure
 
 ```
 app/
-├── domain/                          # Regras de Negócio Empresariais
-│   ├── auth/                        # Autenticação (AuthenticatedUser, Token)
-│   ├── entities/                    # Entidades de domínio
-│   ├── value_objects/               # Objetos de valor imutáveis
-│   └── exceptions/                  # Exceções específicas do domínio
-├── application/                     # Regras de Negócio da Aplicação
+├── domain/                          # Enterprise Business Rules
+│   ├── auth/                        # Authentication (AuthenticatedUser, Token)
+│   ├── entities/                    # Domain entities
+│   ├── value_objects/               # Immutable value objects
+│   └── exceptions/                  # Domain-specific exceptions
+├── application/                     # Application Business Rules
 │   ├── auth/                        # AuthenticationService, OAuth2Provider interface
-│   ├── use_cases/                   # Implementação de casos de uso
-│   ├── ports/                       # Interfaces/Protocolos (DIP)
+│   ├── use_cases/                   # Use case implementations
+│   ├── ports/                       # Interfaces/Protocols (DIP)
 │   └── dtos/                        # Data Transfer Objects
 ├── infrastructure/                  # Frameworks & Drivers
 │   ├── auth/                        # JWT provider implementation
 │   ├── database/
-│   │   ├── models.py                # Modelos SQLAlchemy
-│   │   ├── session.py               # Gerenciamento de sessão
-│   │   └── repositories/            # Implementações de repositórios
-│   ├── api/                         # Adaptadores de Interface
-│   │   ├── dependencies.py          # Injeção de dependências FastAPI
-│   │   ├── routes/                  # Rotas da API
-│   │   └── schemas/                 # Schemas Pydantic para API
+│   │   ├── models.py                # SQLAlchemy models
+│   │   ├── session.py               # Session management
+│   │   └── repositories/            # Repository implementations
+│   ├── api/                         # Interface Adapters
+│   │   ├── dependencies.py          # FastAPI dependency injection
+│   │   ├── routes/                  # API routes
+│   │   └── schemas/                 # Pydantic schemas for API
 │   └── config/
-│       └── settings.py              # Configurações (inclui OAuth2)
-├── shared/                          # Utilitários Compartilhados
-│   ├── logging.py                   # Utilitários de logging
-│   ├── middleware.py                # Middleware customizado
-│   └── functional/                  # Utilitários de programação funcional
+│       └── settings.py              # Settings (includes OAuth2)
+├── shared/                          # Shared Utilities
+│   ├── logging.py                   # Logging utilities
+│   ├── middleware.py                # Custom middleware
+│   └── functional/                  # Functional programming utilities
 │       ├── either.py                # Result/Either monad
 │       └── option.py                # Option/Maybe monad
-└── core/                            # Constantes e enums
+└── core/                            # Constants and enums
     └── constants.py
 ```
 
-## 🚀 Exemplo de Uso com OAuth2
+## 🚀 OAuth2 Usage Examples
 
-### Obter informações do usuário autenticado
+### Get authenticated user information
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/protected/me" \
-  -H "Authorization: Bearer <seu-token-jwt>"
+  -H "Authorization: Bearer <your-jwt-token>"
 ```
 
-### Endpoint protegido por role
+### Role-protected endpoint
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/protected/admin" \
-  -H "Authorization: Bearer <seu-token-jwt-com-role-admin>"
+  -H "Authorization: Bearer <your-jwt-token-with-admin-role>"
 ```
 
-### Endpoint protegido por permissão
+### Permission-protected endpoint
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/protected/write-data" \
-  -H "Authorization: Bearer <seu-token-jwt-com-permissao-write>"
+  -H "Authorization: Bearer <your-jwt-token-with-write-permission>"
 ```
 
-## 📚 Documentação da API
+## 📚 API Documentation
 
-Após iniciar a aplicação, acesse:
+After starting the application, access:
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## 🔧 Desenvolvimento
+## 🔧 Development
 
-### Adicionar Nova Funcionalidade
+### Adding New Features
 
-1. **Domínio**: Crie entidades e value objects em `domain/`
-2. **Aplicação**: Crie DTOs, portas e casos de uso em `application/`
-3. **Infraestrutura**: Implemente repositórios e rotas em `infrastructure/`
-4. **Testes**: Adicione testes para cada camada
+1. **Domain**: Create entities and value objects in `domain/`
+2. **Application**: Create DTOs, ports, and use cases in `application/`
+3. **Infrastructure**: Implement repositories and routes in `infrastructure/`
+4. **Tests**: Add tests for each layer
 
-Veja [ARCHITECTURE.md](./ARCHITECTURE.md) para detalhes completos.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete details.
 
-### Configurar Provedor OAuth2 Customizado
+### Configure Custom OAuth2 Provider
 
-Se você precisa de recursos específicos do provedor (como refresh de token), veja [OAUTH2_SETUP.md](./OAUTH2_SETUP.md#custom-provider-implementation).
+If you need provider-specific features (like token refresh), see [OAUTH2_SETUP.md](./OAUTH2_SETUP.md#custom-provider-implementation).
 
-### Princípios SOLID
+### SOLID Principles
 
-- **S**ingle Responsibility: Cada classe tem uma única responsabilidade
-- **O**pen/Closed: Aberto para extensão, fechado para modificação
-- **L**iskov Substitution: Interfaces podem ser substituídas por implementações
-- **I**nterface Segregation: Interfaces pequenas e focadas
-- **D**ependency Inversion: Dependa de abstrações, não de concretude
+- **S**ingle Responsibility: Each class has a single responsibility
+- **O**pen/Closed: Open for extension, closed for modification
+- **L**iskov Substitution: Interfaces can be replaced by implementations
+- **I**nterface Segregation: Small, focused interfaces
+- **D**ependency Inversion: Depend on abstractions, not concretions
 
-### Programação Funcional
+### Functional Programming
 
-O projeto usa monads para tratamento de erros:
+The project uses monads for error handling:
 
 ```python
-# Either monad para operações que podem falhar
+# Either monad for operations that can fail
 result = auth_service.authenticate(token)
 if isinstance(result, Success):
     user = result.unwrap()
@@ -224,21 +224,21 @@ elif isinstance(result, Failure):
     error = result.failure()
 ```
 
-## 📝 Migrações de Banco de Dados
+## 📝 Database Migrations
 
-### Criar uma migração
+### Create a migration
 
 ```bash
-make migration m="descrição da migração"
+make migration m="migration description"
 ```
 
-### Aplicar migrações
+### Apply migrations
 
 ```bash
 make migrate
 ```
 
-### Reverter última migração
+### Revert last migration
 
 ```bash
 make migrate-down
@@ -246,24 +246,24 @@ make migrate-down
 
 ## Endpoints
 
-- [x] `/healthcheck` - Retorna o status da aplicação e banco de dados
-- [x] `/api/v1/protected/me` - Informações do usuário autenticado
-- [x] `/api/v1/protected/admin` - Endpoint protegido por role de admin
-- [x] `/api/v1/protected/write-data` - Endpoint protegido por permissão
+- [x] `/healthcheck` - Returns application and database status
+- [x] `/api/v1/protected/me` - Authenticated user information
+- [x] `/api/v1/protected/admin` - Admin role-protected endpoint
+- [x] `/api/v1/protected/write-data` - Permission-protected endpoint
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT.
+This project is under the MIT license.
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
