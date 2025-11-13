@@ -24,6 +24,11 @@ make docker-run
 
 ### Executar os testes
 
+Os testes utilizam [testcontainers](https://testcontainers.com/) para gerenciar automaticamente um container PostgreSQL. Isso significa que você não precisa ter um banco de dados rodando localmente - o testcontainer cuidará disso para você.
+
+**Requisitos:**
+- Docker deve estar instalado e rodando
+
 ```bash
 make test
 ```
