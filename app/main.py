@@ -2,7 +2,7 @@
 FastAPI application entry point.
 
 This module initializes and configures the FastAPI application with
-middleware, logging, and routes following Clean Architecture principles.
+middleware, logging, and routes.
 """
 
 import logging
@@ -14,10 +14,10 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
 
-from app.infrastructure.api.dependencies import SessionDep
-from app.infrastructure.config.settings import settings
-from app.shared.logging import setup_logging
-from app.shared.middleware import logging_middleware
+from app.auth.dependencies import SessionDep
+from core.config import settings
+from core.logging import setup_logging
+from core.middleware import logging_middleware
 
 
 def create_app() -> FastAPI:
@@ -36,13 +36,13 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
-        description='FastAPI Template with Clean Architecture and OAuth2',
+        description='FastAPI Template with OAuth2 Authentication',
     )
 
-    # Include routers
-    from app.infrastructure.api.routes import protected
+    # Include API routers
+    from app.api.v1 import router as api_v1_router
 
-    fastapi_app.include_router(protected.router, prefix=settings.API_V1_STR)
+    fastapi_app.include_router(api_v1_router)
 
     @fastapi_app.get('/healthcheck', tags=['health'])
     def healthcheck(db: SessionDep) -> dict:
