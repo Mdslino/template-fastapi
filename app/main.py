@@ -19,10 +19,6 @@ from app.infrastructure.config.settings import settings
 from app.shared.logging import setup_logging
 from app.shared.middleware import logging_middleware
 
-logger = structlog.get_logger(__name__)
-
-setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
-
 
 def create_app() -> FastAPI:
     """
@@ -31,6 +27,10 @@ def create_app() -> FastAPI:
     Returns:
         Configured FastAPI application instance
     """
+    # Setup logging
+    setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
+    logger = structlog.get_logger(__name__)
+    
     dictConfig(settings.LOGGING_CONFIG)
     fastapi_app = FastAPI(
         title=settings.APP_NAME,
@@ -70,21 +70,21 @@ def create_app() -> FastAPI:
             'version': settings.APP_VERSION,
         }
 
+    # Add middleware
+    fastapi_app.middleware('http')(logging_middleware)
+    fastapi_app.add_middleware(CorrelationIdMiddleware)
+
     return fastapi_app
 
 
+# Create app instance for production
 app = create_app()
-
-# Add middleware
-app.middleware('http')(logging_middleware)
-app.add_middleware(CorrelationIdMiddleware)
 
 if __name__ == '__main__':  # pragma: no cover
     # This is only for local development.
     import uvicorn
 
-    fastapi_logger.setLevel(logger.level)
-    app = create_app()
+    fastapi_logger.setLevel(logging.DEBUG)
     uvicorn.run(app, host='0.0.0.0', port=8000)
 else:
     fastapi_logger.setLevel(logging.DEBUG)
