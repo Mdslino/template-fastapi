@@ -1,9 +1,17 @@
 import contextlib
+import os
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy_utils import create_database, database_exists
+
+# Set test environment variables before importing app modules
+os.environ.setdefault('SECRET_KEY', 'test-secret-key-for-testing-only')
+os.environ.setdefault('POSTGRES_PASSWORD', 'test-password')
+os.environ.setdefault('POSTGRES_DB', 'test_db')
+os.environ.setdefault('OAUTH2_JWKS_URL', 'https://example.com/.well-known/jwks.json')
+os.environ.setdefault('OAUTH2_ISSUER', 'https://example.com')
 
 from app.main import create_app
 from shared.models import Base

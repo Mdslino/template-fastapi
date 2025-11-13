@@ -75,26 +75,44 @@ def admin_route(
 
 ## How to Run
 
-### Install Dependencies
+### 1. Environment Setup
+
+**Important**: You must configure environment variables before running the application.
+
+1. Copy `.example.env` to `.env`:
+   ```bash
+   cp .example.env .env
+   ```
+
+2. Edit `.env` and set required variables:
+   ```bash
+   # Required: Set a strong secret key for JWT and cryptographic operations
+   SECRET_KEY=your-strong-secret-key-here
+   
+   # Required: Set database password
+   POSTGRES_PASSWORD=your-database-password
+   
+   # Required for OAuth2: Configure your OAuth2 provider
+   OAUTH2_JWKS_URL=https://your-provider.com/.well-known/jwks.json
+   OAUTH2_ISSUER=https://your-provider.com
+   OAUTH2_AUDIENCE=your-audience  # Optional
+   ```
+
+### 2. Install Dependencies
 
 ```bash
 make install
 ```
 
-### Configure OAuth2
+### 3. Run Application
 
-1. Copy `.example.env` to `.env`
-2. Configure OAuth2 variables:
-   ```bash
-   OAUTH2_JWKS_URL=<your-provider>
-   OAUTH2_ISSUER=<your-issuer>
-   ```
-
-### Run Application
-- Ensure the `.env` file is configured correctly.
-- Start the database with `make run-db`.
+Ensure the `.env` file is configured correctly, then start the database and application:
 
 ```bash
+# Start database
+make run-db
+
+# Start application
 make run
 ```
 
