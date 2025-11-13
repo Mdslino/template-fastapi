@@ -42,14 +42,12 @@ class Settings(BaseSettings):
     APP_NAME: str = 'FastAPI'
     APP_VERSION: str = '0.1.0'
     DEBUG: bool = False
-    # SECURITY WARNING: Change this in production! Use environment variable.
-    SECRET_KEY: str = 'change-me-in-production'
+    SECRET_KEY: str
     POSTGRES_PROTOCOL: str = 'postgresql'
     POSTGRES_SERVER: str = 'localhost'
     POSTGRES_PORT: str = '5432'
     POSTGRES_USER: str = 'postgres'
-    # SECURITY WARNING: Change this in production! Use environment variable.
-    POSTGRES_PASSWORD: str = 'change-me-in-production'
+    POSTGRES_PASSWORD: str
     POSTGRES_DB: str = 'postgres'
     SQLALCHEMY_DATABASE_URI: PostgresDsn | None = None
     API_V1_STR: str = '/api/v1'
