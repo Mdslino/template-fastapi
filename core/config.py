@@ -11,7 +11,7 @@ from typing import Any
 from pydantic import PostgresDsn, field_validator
 from pydantic_core import MultiHostUrl
 from pydantic_core.core_schema import FieldValidationInfo
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     OAUTH2_ISSUER: str = ''
     OAUTH2_AUDIENCE: str | None = None
 
+    model_config = SettingsConfigDict(env_file='.env')
+
     @field_validator('SQLALCHEMY_DATABASE_URI')
     def assemble_db_connection(
         cls, v: PostgresDsn | None, values: FieldValidationInfo
@@ -90,4 +92,16 @@ class Settings(BaseSettings):
         return PostgresDsn(postgres_dsn)
 
 
-settings = Settings()
+_settings = None
+
+
+def get_settings() -> Settings:
+    """Get application settings (singleton pattern)."""
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
+
+
+settings = get_settings()
+

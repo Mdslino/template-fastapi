@@ -5,19 +5,19 @@ description = "FastAPI Template with Clean Architecture and OAuth2"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "alembic>=1.13.3",
+    "alembic>=1.14.0",
     "asgi-correlation-id>=4.3.4",
     "fastapi>=0.121.1",
-    "httpx>=0.27.2",
+    "httpx>=0.28.1",
     "psycopg2-binary>=2.9.10",
-    "pydantic[email]>=2.0.0",
-    "pydantic-settings>=2.6.0",
+    "pydantic[email]>=2.10.3",
+    "pydantic-settings>=2.6.1",
     "pyhumps>=3.8.0",
-    "pyjwt[crypto]>=2.8.0",
-    "python-multipart>=0.0.12",
+    "pyjwt[crypto]>=2.10.1",
+    "python-multipart>=0.0.19",
     "returns>=0.24.0",
     "sqlalchemy-utils>=0.41.2",
-    "sqlmodel>=0.0.22",
+    "sqlmodel>=0.0.24",
     "structlog>=24.4.0",
     "uvicorn[standard]>=0.38.0",
 ]
@@ -33,17 +33,17 @@ exclude = ["tests*", "alembic*"]
 
 [tool.uv]
 dev-dependencies = [
-    "faker>=30.6.0",
-    "ipython>=8.28.0",
+    "faker>=33.1.0",
+    "ipython>=8.31.0",
     "isort>=5.13.2",
-    "mypy>=1.12.0",
-    "pytest>=8.3.3",
-    "pytest-cov>=5.0.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
     "pytest-dotenv>=0.5.2",
     "pytest-mock>=3.14.0",
     "pytest-sugar>=1.0.0",
     "pytest-vcr>=1.0.2",
-    "ruff>=0.7.0",
+    "ruff>=0.8.4",
 ]
 
 [tool.ruff]
