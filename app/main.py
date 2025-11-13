@@ -10,12 +10,11 @@ from logging.config import dictConfig
 
 import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
 
 from app.infrastructure.api.dependencies import SessionDep
-from app.infrastructure.api.routes import users
 from app.infrastructure.config.settings import settings
 from app.shared.logging import setup_logging
 from app.shared.middleware import logging_middleware
@@ -37,11 +36,13 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
-        description='FastAPI Template with Clean Architecture',
+        description='FastAPI Template with Clean Architecture and OAuth2',
     )
 
     # Include routers
-    fastapi_app.include_router(users.router, prefix=settings.API_V1_STR)
+    from app.infrastructure.api.routes import protected
+
+    fastapi_app.include_router(protected.router, prefix=settings.API_V1_STR)
 
     @fastapi_app.get('/healthcheck', tags=['health'])
     def healthcheck(db: SessionDep) -> dict:

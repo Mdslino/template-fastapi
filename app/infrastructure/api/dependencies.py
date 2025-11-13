@@ -2,17 +2,22 @@
 FastAPI dependency injection functions.
 
 This module provides dependency injection functions for FastAPI routes,
-including database session management, repositories, and use cases.
+including database session management and OAuth2 authentication.
 """
 
 from typing import Annotated, Generator
 
 import structlog
-from fastapi import Depends
-from fastapi.security import HTTPBearer
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
+from app.application.auth.authentication_service import AuthenticationService
+from app.application.auth.oauth2_provider import OAuth2Provider
+from app.domain.auth.user import AuthenticatedUser
+from app.infrastructure.config.settings import settings
 from app.infrastructure.database.session import engine
+from app.shared.functional.either import Failure, Success
 
 logger = structlog.get_logger(__name__)
 security = HTTPBearer(auto_error=False)
@@ -41,105 +46,172 @@ def get_db() -> Generator[Session, None, None]:
 SessionDep = Annotated[Session, Depends(get_db)]
 
 
-# Repository Dependencies
-def get_user_repository(
-    db: SessionDep,
-) -> 'SQLAlchemyUserRepository':
+# OAuth2 Provider Dependencies
+def get_oauth2_provider() -> OAuth2Provider:
     """
-    Provide UserRepository dependency.
+    Provide OAuth2 provider dependency.
 
-    Args:
-        db: Database session (injected)
+    This should be configured based on the OAuth2 provider you're using.
+    Examples:
+    - Supabase: Set OAUTH2_JWKS_URL, OAUTH2_ISSUER in settings
+    - Firebase: Use Firebase Admin SDK
+    - Cognito: Use AWS Cognito settings
+    - Auth0: Use Auth0 settings
 
     Returns:
-        UserRepository implementation
+        OAuth2Provider implementation
 
-    Example:
-        >>> from fastapi import Depends
-        >>> @app.get("/users/")
-        >>> def list_users(repo: UserRepository = Depends(get_user_repository)):
-        ...     return repo.list_all()
+    Raises:
+        ValueError: If OAuth2 settings are not configured
     """
-    from app.infrastructure.database.repositories.user_repository import (
-        SQLAlchemyUserRepository,
+    from app.infrastructure.auth.jwt_provider import JWTOAuth2Provider
+
+    if not settings.OAUTH2_JWKS_URL or not settings.OAUTH2_ISSUER:
+        raise ValueError(
+            'OAuth2 settings not configured. Please set OAUTH2_JWKS_URL '
+            'and OAUTH2_ISSUER in your environment variables.'
+        )
+
+    return JWTOAuth2Provider(
+        jwks_url=settings.OAUTH2_JWKS_URL,
+        issuer=settings.OAUTH2_ISSUER,
+        audience=settings.OAUTH2_AUDIENCE,
     )
 
-    return SQLAlchemyUserRepository(db)
+
+OAuth2ProviderDep = Annotated[OAuth2Provider, Depends(get_oauth2_provider)]
 
 
-UserRepositoryDep = Annotated[
-    'SQLAlchemyUserRepository', Depends(get_user_repository)
+def get_authentication_service(
+    oauth2_provider: OAuth2ProviderDep,
+) -> AuthenticationService:
+    """
+    Provide AuthenticationService dependency.
+
+    Args:
+        oauth2_provider: OAuth2 provider (injected)
+
+    Returns:
+        AuthenticationService instance
+    """
+    return AuthenticationService(oauth2_provider)
+
+
+AuthenticationServiceDep = Annotated[
+    AuthenticationService, Depends(get_authentication_service)
 ]
 
 
-# Use Case Dependencies
-def get_create_user_use_case(
-    user_repository: UserRepositoryDep,
-) -> 'CreateUserUseCase':
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    auth_service: AuthenticationServiceDep = None,
+) -> AuthenticatedUser:
     """
-    Provide CreateUserUseCase dependency.
+    Get the current authenticated user from the request.
+
+    This dependency extracts the Bearer token from the Authorization header,
+    verifies it with the OAuth2 provider, and returns the authenticated user.
 
     Args:
-        user_repository: User repository (injected)
+        credentials: HTTP authorization credentials (injected)
+        auth_service: Authentication service (injected)
 
     Returns:
-        CreateUserUseCase instance
+        Authenticated user
+
+    Raises:
+        HTTPException: If authentication fails
 
     Example:
-        >>> from fastapi import Depends
-        >>> @app.post("/users/")
-        >>> def create_user(
-        ...     use_case: CreateUserUseCase = Depends(get_create_user_use_case)
+        >>> @app.get("/protected")
+        >>> def protected_route(user: CurrentUserDep):
+        ...     return {"user_id": str(user.user_id), "email": user.email}
+    """
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Not authenticated',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
+    token = credentials.credentials
+    result = auth_service.authenticate(token)
+
+    if isinstance(result, Success):
+        return result.unwrap()
+    elif isinstance(result, Failure):
+        error = result.failure()
+        logger.warning('Authentication failed', error=str(error))
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail='Invalid authentication credentials',
+            headers={'WWW-Authenticate': 'Bearer'},
+        )
+
+
+# Type alias for current user dependency
+CurrentUserDep = Annotated[AuthenticatedUser, Depends(get_current_user)]
+
+
+def require_permissions(required_permissions: list[str]):
+    """
+    Dependency factory to require specific permissions.
+
+    Args:
+        required_permissions: List of required permissions
+
+    Returns:
+        Dependency function that validates permissions
+
+    Example:
+        >>> @app.get("/admin")
+        >>> def admin_route(
+        ...     user: CurrentUserDep,
+        ...     _: None = Depends(require_permissions(['admin:read', 'admin:write']))
         ... ):
-        ...     return use_case.execute(dto)
+        ...     return {"message": "Admin access granted"}
     """
-    from app.application.use_cases.user.create_user import CreateUserUseCase
 
-    return CreateUserUseCase(user_repository)
+    def check_permissions(
+        user: CurrentUserDep,
+        auth_service: AuthenticationServiceDep,
+    ) -> None:
+        if not auth_service.check_permissions(user, required_permissions):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail='Insufficient permissions',
+            )
+
+    return Depends(check_permissions)
 
 
-CreateUserUseCaseDep = Annotated[
-    'CreateUserUseCase', Depends(get_create_user_use_case)
-]
-
-
-def get_get_user_use_case(
-    user_repository: UserRepositoryDep,
-) -> 'GetUserUseCase':
+def require_roles(required_roles: list[str]):
     """
-    Provide GetUserUseCase dependency.
+    Dependency factory to require specific roles.
 
     Args:
-        user_repository: User repository (injected)
+        required_roles: List of required roles (user needs at least one)
 
     Returns:
-        GetUserUseCase instance
+        Dependency function that validates roles
+
+    Example:
+        >>> @app.get("/admin")
+        >>> def admin_route(
+        ...     user: CurrentUserDep,
+        ...     _: None = Depends(require_roles(['admin', 'moderator']))
+        ... ):
+        ...     return {"message": "Admin access granted"}
     """
-    from app.application.use_cases.user.get_user import GetUserUseCase
 
-    return GetUserUseCase(user_repository)
+    def check_roles(
+        user: CurrentUserDep,
+        auth_service: AuthenticationServiceDep,
+    ) -> None:
+        if not auth_service.check_roles(user, required_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail='Insufficient roles',
+            )
 
-
-GetUserUseCaseDep = Annotated['GetUserUseCase', Depends(get_get_user_use_case)]
-
-
-def get_list_users_use_case(
-    user_repository: UserRepositoryDep,
-) -> 'ListUsersUseCase':
-    """
-    Provide ListUsersUseCase dependency.
-
-    Args:
-        user_repository: User repository (injected)
-
-    Returns:
-        ListUsersUseCase instance
-    """
-    from app.application.use_cases.user.list_users import ListUsersUseCase
-
-    return ListUsersUseCase(user_repository)
-
-
-ListUsersUseCaseDep = Annotated[
-    'ListUsersUseCase', Depends(get_list_users_use_case)
-]
+    return Depends(check_roles)

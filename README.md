@@ -1,14 +1,14 @@
 # Modelo de uma Aplicação Web com FastAPI
 
-Template FastAPI seguindo princípios de Clean Architecture, SOLID e Programação Funcional.
+Template FastAPI seguindo princípios de Clean Architecture, SOLID e Programação Funcional com **Autenticação OAuth2 Agnóstica**.
 
 ## 🏗️ Arquitetura
 
 Este projeto segue **Clean Architecture** com separação clara de responsabilidades:
 
-- **`domain/`**: Entidades de negócio e regras empresariais
-- **`application/`**: Casos de uso e lógica de aplicação
-- **`infrastructure/`**: Frameworks, banco de dados e APIs
+- **`domain/`**: Entidades de negócio e regras empresariais (AuthenticatedUser, Token)
+- **`application/`**: Casos de uso e lógica de aplicação (AuthenticationService, OAuth2Provider interface)
+- **`infrastructure/`**: Frameworks, banco de dados e APIs (JWT provider, routes, dependencies)
 - **`shared/`**: Utilitários compartilhados (logging, funcional, middleware)
 
 Para mais detalhes, veja [ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -17,14 +17,55 @@ Para mais detalhes, veja [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 - ✅ **Clean Architecture**: Separação clara de camadas e responsabilidades
 - ✅ **SOLID Principles**: Código manutenível e extensível
+- ✅ **OAuth2 Agnostic**: Funciona com qualquer provedor OAuth2 (Supabase, Firebase, Cognito, Auth0)
 - ✅ **Dependency Injection**: Uso extensivo de DI do FastAPI
 - ✅ **Pydantic**: Validação em todas as camadas
 - ✅ **Functional Programming**: Either/Result monads para tratamento de erros
 - ✅ **Type Hints**: Tipagem completa em todo o código
 - ✅ **Structured Logging**: Logs estruturados com structlog
-- ✅ **FastAPI**: Framework moderno e rápido
-- ✅ **SQLAlchemy**: ORM poderoso para banco de dados
-- ✅ **Alembic**: Migrações de banco de dados
+- ✅ **JWT Verification**: Verificação segura de tokens JWT
+- ✅ **Role & Permission Based Access**: Controle de acesso por roles e permissões
+
+## 🔐 Autenticação OAuth2
+
+O template suporta autenticação OAuth2 de forma **agnóstica ao provedor**:
+
+### Provedores Suportados
+- Supabase
+- Firebase
+- AWS Cognito  
+- Auth0
+- Keycloak
+- Qualquer provedor OAuth2 que use JWT
+
+### Configuração
+
+Configure as variáveis de ambiente:
+
+```bash
+OAUTH2_JWKS_URL=https://your-provider.com/.well-known/jwks.json
+OAUTH2_ISSUER=https://your-provider.com
+OAUTH2_AUDIENCE=your-audience  # Opcional
+```
+
+Veja [OAUTH2_SETUP.md](./OAUTH2_SETUP.md) para configuração detalhada de cada provedor.
+
+### Endpoints Protegidos
+
+```python
+from app.infrastructure.api.dependencies import CurrentUserDep, require_roles
+
+@router.get("/protected")
+def protected_route(user: CurrentUserDep):
+    return {"user": user.email}
+
+@router.get("/admin")
+def admin_route(
+    user: CurrentUserDep,
+    _: None = Depends(require_roles(['admin']))
+):
+    return {"message": "Admin only"}
+```
 
 ## 📋 Requisitos
 
@@ -40,8 +81,17 @@ Para mais detalhes, veja [ARCHITECTURE.md](./ARCHITECTURE.md).
 make install
 ```
 
+### Configurar OAuth2
+
+1. Copie `.example.env` para `.env`
+2. Configure as variáveis OAuth2:
+   ```bash
+   OAUTH2_JWKS_URL=<seu-provider>
+   OAUTH2_ISSUER=<seu-issuer>
+   ```
+
 ### Executar a aplicação
-- Certifique-se de que o arquivo `.example.env` esteja configurado corretamente.
+- Certifique-se de que o arquivo `.env` esteja configurado corretamente.
 - Execute o banco de dados com o comando `make run-db`.
 
 ```bash
@@ -77,14 +127,17 @@ make format-code
 ```
 app/
 ├── domain/                          # Regras de Negócio Empresariais
+│   ├── auth/                        # Autenticação (AuthenticatedUser, Token)
 │   ├── entities/                    # Entidades de domínio
 │   ├── value_objects/               # Objetos de valor imutáveis
 │   └── exceptions/                  # Exceções específicas do domínio
 ├── application/                     # Regras de Negócio da Aplicação
+│   ├── auth/                        # AuthenticationService, OAuth2Provider interface
 │   ├── use_cases/                   # Implementação de casos de uso
 │   ├── ports/                       # Interfaces/Protocolos (DIP)
 │   └── dtos/                        # Data Transfer Objects
 ├── infrastructure/                  # Frameworks & Drivers
+│   ├── auth/                        # JWT provider implementation
 │   ├── database/
 │   │   ├── models.py                # Modelos SQLAlchemy
 │   │   ├── session.py               # Gerenciamento de sessão
@@ -94,7 +147,7 @@ app/
 │   │   ├── routes/                  # Rotas da API
 │   │   └── schemas/                 # Schemas Pydantic para API
 │   └── config/
-│       └── settings.py              # Configurações
+│       └── settings.py              # Configurações (inclui OAuth2)
 ├── shared/                          # Utilitários Compartilhados
 │   ├── logging.py                   # Utilitários de logging
 │   ├── middleware.py                # Middleware customizado
@@ -105,30 +158,27 @@ app/
     └── constants.py
 ```
 
-## 🚀 Exemplo de Uso
+## 🚀 Exemplo de Uso com OAuth2
 
-### Criar um Usuário
+### Obter informações do usuário autenticado
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/users/" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe",
-    "email": "john@example.com",
-    "full_name": "John Doe"
-  }'
+curl -X GET "http://localhost:8000/api/v1/protected/me" \
+  -H "Authorization: Bearer <seu-token-jwt>"
 ```
 
-### Listar Usuários
+### Endpoint protegido por role
 
 ```bash
-curl "http://localhost:8000/api/v1/users/"
+curl -X GET "http://localhost:8000/api/v1/protected/admin" \
+  -H "Authorization: Bearer <seu-token-jwt-com-role-admin>"
 ```
 
-### Buscar Usuário por ID
+### Endpoint protegido por permissão
 
 ```bash
-curl "http://localhost:8000/api/v1/users/{user_id}"
+curl -X GET "http://localhost:8000/api/v1/protected/write-data" \
+  -H "Authorization: Bearer <seu-token-jwt-com-permissao-write>"
 ```
 
 ## 📚 Documentação da API
@@ -137,19 +187,6 @@ Após iniciar a aplicação, acesse:
 
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
-
-## 🧪 Testes
-
-O projeto inclui testes para:
-- Entidades de domínio
-- Casos de uso
-- Endpoints da API
-
-Execute os testes com:
-
-```bash
-make test
-```
 
 ## 🔧 Desenvolvimento
 
@@ -161,6 +198,10 @@ make test
 4. **Testes**: Adicione testes para cada camada
 
 Veja [ARCHITECTURE.md](./ARCHITECTURE.md) para detalhes completos.
+
+### Configurar Provedor OAuth2 Customizado
+
+Se você precisa de recursos específicos do provedor (como refresh de token), veja [OAUTH2_SETUP.md](./OAUTH2_SETUP.md#custom-provider-implementation).
 
 ### Princípios SOLID
 
@@ -176,16 +217,11 @@ O projeto usa monads para tratamento de erros:
 
 ```python
 # Either monad para operações que podem falhar
-result = use_case.execute(dto)
+result = auth_service.authenticate(token)
 if isinstance(result, Success):
     user = result.unwrap()
 elif isinstance(result, Failure):
     error = result.failure()
-
-# Option monad para valores opcionais
-user_option = repository.find_by_id(user_id)
-if user_option == Nothing:
-    # Usuário não encontrado
 ```
 
 ## 📝 Migrações de Banco de Dados
@@ -210,8 +246,10 @@ make migrate-down
 
 ## Endpoints
 
-- [x] `/healthcheck` - Retorna uma mensagem se a aplicação está funcionando
-- [x] `/api/v1/users/` - CRUD de usuários (POST, GET, GET by ID)
+- [x] `/healthcheck` - Retorna o status da aplicação e banco de dados
+- [x] `/api/v1/protected/me` - Informações do usuário autenticado
+- [x] `/api/v1/protected/admin` - Endpoint protegido por role de admin
+- [x] `/api/v1/protected/write-data` - Endpoint protegido por permissão
 
 ## 🤝 Contribuindo
 
@@ -232,3 +270,5 @@ Este projeto está sob a licença MIT.
 - [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
 - [Pydantic Documentation](https://docs.pydantic.dev/)
 - [returns Library](https://returns.readthedocs.io/)
+- [OAuth 2.0](https://oauth.net/2/)
+- [JWT.io](https://jwt.io/)

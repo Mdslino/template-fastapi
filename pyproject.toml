@@ -1,7 +1,7 @@
 [project]
 name = "template-fastapi"
 version = "0.1.0"
-description = "FastAPI Template with Clean Architecture and SOLID Principles"
+description = "FastAPI Template with Clean Architecture and OAuth2"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "pydantic-settings>=2.6.0",
     "pyhumps>=3.8.0",
+    "pyjwt[crypto]>=2.8.0",
     "python-multipart>=0.0.12",
     "returns>=0.24.0",
     "sqlalchemy-utils>=0.41.2",

@@ -9,13 +9,11 @@ from app.infrastructure.config.settings import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-# Import Base from new location and all models
+# Import Base from new location
 from app.infrastructure.database.models import Base
 
 # Import all models to ensure they're registered with Base.metadata
-from app.infrastructure.database.repositories.user_repository import (
-    UserModel,
-)
+# Add your models here as you create them
 
 config = context.config
 

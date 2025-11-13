@@ -2,7 +2,8 @@
 Application settings and configuration management.
 
 This module defines the application settings using Pydantic Settings,
-including database configuration, API settings, and logging configuration.
+including database configuration, API settings, logging configuration,
+and OAuth2 authentication settings.
 """
 
 from typing import Any
@@ -22,7 +23,6 @@ class Settings(BaseSettings):
         APP_VERSION: Application version
         DEBUG: Debug mode flag
         SECRET_KEY: Secret key for cryptographic operations
-        ACCESS_TOKEN_EXPIRE_MINUTES: JWT token expiration time
         POSTGRES_PROTOCOL: PostgreSQL protocol
         POSTGRES_SERVER: PostgreSQL server host
         POSTGRES_PORT: PostgreSQL server port
@@ -34,16 +34,15 @@ class Settings(BaseSettings):
         LOG_LEVEL: Logging level
         LOGGING_CONFIG: Logging configuration dict
         JSON_LOGS: Whether to use JSON format for logs
-        SUPABASE_SERVICE_KEY: Supabase service key (optional)
-        SUPABASE_JWT_SECRET: Supabase JWT secret (optional)
-        SUPABASE_URL: Supabase URL (optional)
+        OAUTH2_JWKS_URL: OAuth2 JWKS URL for token verification
+        OAUTH2_ISSUER: OAuth2 token issuer
+        OAUTH2_AUDIENCE: OAuth2 token audience (optional)
     """
 
     APP_NAME: str = 'FastAPI'
     APP_VERSION: str = '0.1.0'
     DEBUG: bool = False
     SECRET_KEY: str = 'secret'
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     POSTGRES_PROTOCOL: str = 'postgresql'
     POSTGRES_SERVER: str = 'localhost'
     POSTGRES_PORT: str = '5432'
@@ -59,9 +58,15 @@ class Settings(BaseSettings):
     }
     JSON_LOGS: bool = False
 
-    SUPABASE_SERVICE_KEY: str = ''
-    SUPABASE_JWT_SECRET: str = ''
-    SUPABASE_URL: str = ''
+    # OAuth2 Settings (provider-agnostic)
+    # Configure these based on your OAuth2 provider:
+    # - Supabase: https://<project>.supabase.co/auth/v1/.well-known/jwks.json
+    # - Firebase: https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+    # - Auth0: https://<domain>/.well-known/jwks.json
+    # - Cognito: https://cognito-idp.<region>.amazonaws.com/<pool-id>/.well-known/jwks.json
+    OAUTH2_JWKS_URL: str = ''
+    OAUTH2_ISSUER: str = ''
+    OAUTH2_AUDIENCE: str | None = None
 
     @field_validator('SQLALCHEMY_DATABASE_URI')
     def assemble_db_connection(
