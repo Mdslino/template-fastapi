@@ -1,38 +1,61 @@
+"""
+FastAPI application entry point.
+
+This module initializes and configures the FastAPI application with
+middleware, logging, and routes following Clean Architecture principles.
+"""
+
 import logging
-import time
 from logging.config import dictConfig
 
 import structlog
-from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
-from sqlalchemy.orm import Session
-from uvicorn.protocols.utils import get_path_with_query_string
 
-from app.core.config import settings
-from app.core.deps import get_db
-from app.core.endpoints import router
-from app.custom_logging import setup_logging
+from app.infrastructure.api.dependencies import SessionDep
+from app.infrastructure.api.routes import users
+from app.infrastructure.config.settings import settings
+from app.shared.logging import setup_logging
+from app.shared.middleware import logging_middleware
 
 logger = structlog.get_logger(__name__)
 
 setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
-access_logger = structlog.stdlib.get_logger('api.access')
 
 
-def create_app():
+def create_app() -> FastAPI:
+    """
+    Create and configure the FastAPI application.
+
+    Returns:
+        Configured FastAPI application instance
+    """
     dictConfig(settings.LOGGING_CONFIG)
     fastapi_app = FastAPI(
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
+        description='FastAPI Template with Clean Architecture',
     )
 
-    fastapi_app.include_router(router, prefix=settings.API_V1_STR)
+    # Include routers
+    fastapi_app.include_router(users.router, prefix=settings.API_V1_STR)
 
-    @fastapi_app.get('/healthcheck')
-    def healthcheck(db: Session = Depends(get_db)):
+    @fastapi_app.get('/healthcheck', tags=['health'])
+    def healthcheck(db: SessionDep) -> dict:
+        """
+        Health check endpoint.
+
+        Verifies application and database connectivity.
+
+        Args:
+            db: Database session (injected)
+
+        Returns:
+            Health status of app and database
+        """
         db_status = 'ok'
         try:
             db.execute(text('SELECT 1'))
@@ -40,56 +63,19 @@ def create_app():
             db_status = 'error'
             logger.error('Database is not available', exc_info=e)
 
-        return {'app': 'ok', 'db': db_status, 'version': settings.APP_VERSION}
+        return {
+            'app': 'ok',
+            'db': db_status,
+            'version': settings.APP_VERSION,
+        }
 
     return fastapi_app
 
 
 app = create_app()
 
-
-@app.middleware('http')
-async def logging_middleware(request: Request, call_next) -> Response:
-    structlog.contextvars.clear_contextvars()
-
-    request_id = correlation_id.get()
-    structlog.contextvars.bind_contextvars(request_id=request_id)
-
-    start_time = time.perf_counter_ns()
-    response = Response(status_code=500)
-    try:
-        response = await call_next(request)
-    except Exception:
-        structlog.stdlib.get_logger('api.error').exception(
-            'Uncaught exception'
-        )
-        raise
-    finally:
-        process_time = time.perf_counter_ns() - start_time
-        status_code = response.status_code
-        url = get_path_with_query_string(request.scope)
-        client_host = request.client.host
-        client_port = request.client.port
-        http_method = request.method
-        http_version = request.scope['http_version']
-
-        access_logger.info(
-            f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code} {process_time / 1_000_000:.2f}ms""",
-            http={
-                'url': url,
-                'status_code': status_code,
-                'method': http_method,
-                'request_id': request_id,
-                'version': http_version,
-            },
-            network={'client': {'ip': client_host, 'port': client_port}},
-            duration=f'{process_time / 1_000_000:.2f}ms',
-        )
-        response.headers['X-Process-Time'] = str(process_time / 1_000_000_000)
-
-        return response
-
-
+# Add middleware
+app.middleware('http')(logging_middleware)
 app.add_middleware(CorrelationIdMiddleware)
 
 if __name__ == '__main__':  # pragma: no cover
