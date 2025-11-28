@@ -9,7 +9,7 @@ import structlog
 
 from app.auth.providers.interface import OAuth2Provider
 from app.auth.models import AuthenticatedUser
-from shared.utils.functional import Either, Failure, Success
+from shared.exceptions import AuthenticationException
 
 logger = structlog.get_logger(__name__)
 
@@ -34,9 +34,7 @@ class AuthenticationService:
         """
         self.oauth2_provider = oauth2_provider
 
-    def authenticate(
-        self, access_token: str
-    ) -> Either[AuthenticatedUser, Exception]:
+    def authenticate(self, access_token: str) -> AuthenticatedUser:
         """
         Authenticate a user using an access token.
 
@@ -44,45 +42,42 @@ class AuthenticationService:
             access_token: OAuth2 access token
 
         Returns:
-            Either containing AuthenticatedUser on success or Exception on failure
+            AuthenticatedUser on success
+
+        Raises:
+            AuthenticationException: If authentication fails
 
         Example:
             >>> service = AuthenticationService(provider)
-            >>> result = service.authenticate("eyJ...")
-            >>> if isinstance(result, Success):
-            ...     user = result.unwrap()
-            ...     print(f"Authenticated: {user.email}")
+            >>> user = service.authenticate("eyJ...")
+            >>> print(f"Authenticated: {user.email}")
         """
         try:
             # Verify the token first
-            token_result = self.oauth2_provider.verify_token(access_token)
-
-            if isinstance(token_result, Failure):
-                logger.warning('Token verification failed')
-                return token_result
+            self.oauth2_provider.verify_token(access_token)
 
             # Get user info
-            user_result = self.oauth2_provider.get_user_info(access_token)
+            user = self.oauth2_provider.get_user_info(access_token)
 
-            if isinstance(user_result, Success):
-                user = user_result.unwrap()
-                logger.info(
-                    'User authenticated',
-                    user_id=str(user.user_id),
-                    provider=user.provider,
-                )
-                return Success(user)
-            else:
-                logger.error('Failed to get user info')
-                return user_result
+            logger.info(
+                'User authenticated',
+                user_id=str(user.user_id),
+                provider=user.provider,
+            )
+            return user
 
+        except AuthenticationException:
+            logger.warning('Authentication failed')
+            raise
         except Exception as e:
             logger.error('Authentication error', exc_info=e)
-            return Failure(e)
+            raise AuthenticationException(
+                f'Authentication failed: {str(e)}'
+            ) from e
 
     def refresh_authentication(
         self, refresh_token: str
-    ) -> Either[dict[str, str], Exception]:
+    ) -> dict[str, str]:
         """
         Refresh authentication using a refresh token.
 
@@ -90,30 +85,28 @@ class AuthenticationService:
             refresh_token: OAuth2 refresh token
 
         Returns:
-            Either containing new token data or Exception on failure
+            Dict containing new token data
+
+        Raises:
+            AuthenticationException: If token refresh fails
 
         Example:
             >>> service = AuthenticationService(provider)
-            >>> result = service.refresh_authentication("refresh_token")
-            >>> if isinstance(result, Success):
-            ...     tokens = result.unwrap()
-            ...     new_token = tokens['access_token']
+            >>> tokens = service.refresh_authentication("refresh_token")
+            >>> new_token = tokens['access_token']
         """
         try:
-            result = self.oauth2_provider.refresh_token(refresh_token)
-
-            if isinstance(result, Success):
-                logger.info('Token refreshed successfully')
-            else:
-                logger.warning('Token refresh failed')
-
-            return result
+            tokens = self.oauth2_provider.refresh_token(refresh_token)
+            logger.info('Token refreshed successfully')
+            return tokens
 
         except Exception as e:
-            logger.error('Token refresh error', exc_info=e)
-            return Failure(e)
+            logger.warning('Token refresh failed', error=str(e))
+            raise AuthenticationException(
+                f'Token refresh failed: {str(e)}'
+            ) from e
 
-    def logout(self, access_token: str) -> Either[bool, Exception]:
+    def logout(self, access_token: str) -> bool:
         """
         Logout a user by revoking their access token.
 
@@ -121,27 +114,26 @@ class AuthenticationService:
             access_token: OAuth2 access token to revoke
 
         Returns:
-            Either containing True on success or Exception on failure
+            True on success
+
+        Raises:
+            AuthenticationException: If logout fails
 
         Example:
             >>> service = AuthenticationService(provider)
-            >>> result = service.logout("eyJ...")
-            >>> if isinstance(result, Success):
-            ...     print("Logged out successfully")
+            >>> service.logout("eyJ...")
+            >>> print("Logged out successfully")
         """
         try:
             result = self.oauth2_provider.revoke_token(access_token)
-
-            if isinstance(result, Success):
-                logger.info('User logged out successfully')
-            else:
-                logger.warning('Logout failed')
-
+            logger.info('User logged out successfully')
             return result
 
         except Exception as e:
-            logger.error('Logout error', exc_info=e)
-            return Failure(e)
+            logger.warning('Logout failed', error=str(e))
+            raise AuthenticationException(
+                f'Logout failed: {str(e)}'
+            ) from e
 
     def check_permissions(
         self, user: AuthenticatedUser, required_permissions: list[str]

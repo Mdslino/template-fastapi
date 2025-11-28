@@ -1,26 +1,23 @@
 # FastAPI Web Application Template
 
-FastAPI template following Clean Architecture, SOLID principles, and Functional Programming with **Provider-Agnostic OAuth2 Authentication**.
+FastAPI template following a Django-like modular architecture, SOLID principles, and Object-Oriented Programming with **Provider-Agnostic OAuth2 Authentication**.
 
 ## 🏗️ Architecture
 
-This project follows **Clean Architecture** with clear separation of responsibilities:
+This project follows a **Django-like modular architecture** with clear separation of responsibilities:
 
-- **`domain/`**: Business entities and rules (AuthenticatedUser, Token)
-- **`application/`**: Use cases and application logic (AuthenticationService, OAuth2Provider interface)
-- **`infrastructure/`**: Frameworks, database, and APIs (JWT provider, routes, dependencies)
-- **`shared/`**: Shared utilities (logging, functional, middleware)
-
-For more details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+- **`app/`**: Application modules (auth, api, db)
+- **`core/`**: Application setup and configuration
+- **`shared/`**: Shared utilities and base classes
 
 ## ✨ Features
 
-- ✅ **Clean Architecture**: Clear layer separation and responsibilities
+- ✅ **Django-like Modular Structure**: Self-contained feature modules
 - ✅ **SOLID Principles**: Maintainable and extensible code
 - ✅ **OAuth2 Agnostic**: Works with any OAuth2 provider (Supabase, Firebase, Cognito, Auth0)
 - ✅ **Dependency Injection**: Extensive use of FastAPI DI
 - ✅ **Pydantic**: Validation across all layers
-- ✅ **Functional Programming**: Either/Result monads for error handling
+- ✅ **Object-Oriented Design**: Clean OOP with abstract base classes and interfaces
 - ✅ **Type Hints**: Complete typing throughout the codebase
 - ✅ **Structured Logging**: Structured logs with structlog
 - ✅ **JWT Verification**: Secure JWT token verification
@@ -48,12 +45,10 @@ OAUTH2_ISSUER=https://your-provider.com
 OAUTH2_AUDIENCE=your-audience  # Optional
 ```
 
-See [OAUTH2_SETUP.md](./OAUTH2_SETUP.md) for detailed configuration for each provider.
-
 ### Protected Endpoints
 
 ```python
-from app.infrastructure.api.dependencies import CurrentUserDep, require_roles
+from app.auth.dependencies import CurrentUserDep, require_roles
 
 @router.get("/protected")
 def protected_route(user: CurrentUserDep):
@@ -71,7 +66,7 @@ def admin_route(
 
 - Python >= 3.13
 - PostgreSQL
-- Poetry or uv for dependency management
+- uv for dependency management
 
 ## How to Run
 
@@ -143,37 +138,33 @@ make format-code
 ## 📁 Project Structure
 
 ```
-app/
-├── domain/                          # Enterprise Business Rules
-│   ├── auth/                        # Authentication (AuthenticatedUser, Token)
-│   ├── entities/                    # Domain entities
-│   ├── value_objects/               # Immutable value objects
-│   └── exceptions/                  # Domain-specific exceptions
-├── application/                     # Application Business Rules
-│   ├── auth/                        # AuthenticationService, OAuth2Provider interface
-│   ├── use_cases/                   # Use case implementations
-│   ├── ports/                       # Interfaces/Protocols (DIP)
-│   └── dtos/                        # Data Transfer Objects
-├── infrastructure/                  # Frameworks & Drivers
-│   ├── auth/                        # JWT provider implementation
-│   ├── database/
-│   │   ├── models.py                # SQLAlchemy models
-│   │   ├── session.py               # Session management
-│   │   └── repositories/            # Repository implementations
-│   ├── api/                         # Interface Adapters
-│   │   ├── dependencies.py          # FastAPI dependency injection
-│   │   ├── routes/                  # API routes
-│   │   └── schemas/                 # Pydantic schemas for API
-│   └── config/
-│       └── settings.py              # Settings (includes OAuth2)
-├── shared/                          # Shared Utilities
-│   ├── logging.py                   # Logging utilities
-│   ├── middleware.py                # Custom middleware
-│   └── functional/                  # Functional programming utilities
-│       ├── either.py                # Result/Either monad
-│       └── option.py                # Option/Maybe monad
-└── core/                            # Constants and enums
-    └── constants.py
+├── app/                     # Application code (feature modules)
+│   ├── auth/               # Authentication module
+│   │   ├── models.py       # Domain models (AuthenticatedUser, Token)
+│   │   ├── schemas.py      # API schemas
+│   │   ├── services.py     # AuthenticationService
+│   │   ├── routes.py       # API endpoints
+│   │   ├── dependencies.py # FastAPI DI
+│   │   └── providers/      # OAuth2 implementations
+│   │       ├── interface.py   # OAuth2Provider abstract class
+│   │       └── jwt_provider.py # JWT implementation
+│   ├── api/v1/             # API versioning
+│   ├── db/                 # Database setup
+│   └── main.py             # Application entry point
+│
+├── core/                    # Application-wide setup
+│   ├── config.py           # Settings
+│   ├── logging.py          # Logging configuration
+│   ├── middleware.py       # Middleware setup
+│   ├── constants.py        # Application constants
+│   └── dependencies.py     # Global dependencies
+│
+└── shared/                  # Reusable components
+    ├── models.py           # Base model classes
+    ├── schemas.py          # Base schema classes
+    ├── exceptions.py       # Custom exceptions
+    ├── types.py            # Common types
+    └── utils/              # Utility functions
 ```
 
 ## 🚀 OAuth2 Usage Examples
@@ -210,16 +201,29 @@ After starting the application, access:
 
 ### Adding New Features
 
-1. **Domain**: Create entities and value objects in `domain/`
-2. **Application**: Create DTOs, ports, and use cases in `application/`
-3. **Infrastructure**: Implement repositories and routes in `infrastructure/`
-4. **Tests**: Add tests for each layer
-
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for complete details.
+1. Create a new module in `app/` (e.g., `app/products/`)
+2. Add models, schemas, services, routes, and dependencies
+3. Include the router in `app/api/v1/router.py`
+4. Add tests for the new module
 
 ### Configure Custom OAuth2 Provider
 
-If you need provider-specific features (like token refresh), see [OAUTH2_SETUP.md](./OAUTH2_SETUP.md#custom-provider-implementation).
+If you need provider-specific features (like token refresh):
+
+```python
+from app.auth.providers.interface import OAuth2Provider
+
+class CustomOAuth2Provider(OAuth2Provider):
+    def verify_token(self, token: str) -> TokenPayload:
+        # Your implementation
+        pass
+    
+    def get_user_info(self, token: str) -> AuthenticatedUser:
+        # Your implementation
+        pass
+    
+    # Implement other abstract methods...
+```
 
 ### SOLID Principles
 
@@ -229,17 +233,39 @@ If you need provider-specific features (like token refresh), see [OAUTH2_SETUP.m
 - **I**nterface Segregation: Small, focused interfaces
 - **D**ependency Inversion: Depend on abstractions, not concretions
 
-### Functional Programming
+### Object-Oriented Design
 
-The project uses monads for error handling:
+The project uses clean OOP patterns:
 
 ```python
-# Either monad for operations that can fail
-result = auth_service.authenticate(token)
-if isinstance(result, Success):
-    user = result.unwrap()
-elif isinstance(result, Failure):
-    error = result.failure()
+# Abstract base class for OAuth2 providers
+class OAuth2Provider(ABC):
+    @abstractmethod
+    def verify_token(self, token: str) -> TokenPayload:
+        ...
+    
+    @abstractmethod
+    def get_user_info(self, token: str) -> AuthenticatedUser:
+        ...
+
+# Concrete implementation
+class JWTOAuth2Provider(OAuth2Provider):
+    def verify_token(self, token: str) -> TokenPayload:
+        # JWT verification logic
+        ...
+```
+
+Error handling uses exceptions:
+
+```python
+try:
+    user = auth_service.authenticate(token)
+except AuthenticationException as e:
+    # Handle authentication error
+    pass
+except TokenExpiredException as e:
+    # Handle expired token
+    pass
 ```
 
 ## 📝 Database Migrations
@@ -284,9 +310,7 @@ This project is under the MIT license.
 ## 📚 Additional Resources
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 - [SOLID Principles](https://en.wikipedia.org/wiki/SOLID)
 - [Pydantic Documentation](https://docs.pydantic.dev/)
-- [returns Library](https://returns.readthedocs.io/)
 - [OAuth 2.0](https://oauth.net/2/)
 - [JWT.io](https://jwt.io/)

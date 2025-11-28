@@ -18,7 +18,7 @@ from app.auth.providers.interface import OAuth2Provider
 from app.auth.models import AuthenticatedUser
 from core.config import settings
 from app.db.session import engine
-from shared.utils.functional import Failure, Success
+from shared.exceptions import AuthenticationException
 
 logger = structlog.get_logger(__name__)
 security = HTTPBearer(auto_error=False)
@@ -136,13 +136,12 @@ def get_current_user(
         )
 
     token = credentials.credentials
-    result = auth_service.authenticate(token)
 
-    if isinstance(result, Success):
-        return result.unwrap()
-    elif isinstance(result, Failure):
-        error = result.failure()
-        logger.warning('Authentication failed', error=str(error))
+    try:
+        user = auth_service.authenticate(token)
+        return user
+    except AuthenticationException as e:
+        logger.warning('Authentication failed', error=str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail='Invalid authentication credentials',

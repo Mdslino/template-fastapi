@@ -6,28 +6,25 @@ allowing the application to work with any OAuth2 provider in an
 agnostic way.
 """
 
-from abc import abstractmethod
-from typing import Protocol
+from abc import ABC, abstractmethod
 
 from app.auth.models import TokenPayload, AuthenticatedUser
-from shared.utils.functional import Either, Option
 
 
-class OAuth2Provider(Protocol):
+class OAuth2Provider(ABC):
     """
     OAuth2 provider interface.
 
-    This protocol defines the contract that any OAuth2 provider implementation
-    must follow. It abstracts away provider-specific details, making the
-    application work with Supabase, Firebase, Cognito, Auth0, or any other
-    OAuth2-compliant provider.
+    This abstract class defines the contract that any OAuth2 provider 
+    implementation must follow. It abstracts away provider-specific details, 
+    making the application work with Supabase, Firebase, Cognito, Auth0, 
+    or any other OAuth2-compliant provider.
 
-    Methods must return Either types for operations that can fail and Option
-    types for operations that may not find data.
+    Methods raise exceptions on failure for clean error handling.
     """
 
     @abstractmethod
-    def verify_token(self, token: str) -> Either[TokenPayload, Exception]:
+    def verify_token(self, token: str) -> TokenPayload:
         """
         Verify and decode an OAuth2 access token.
 
@@ -35,21 +32,22 @@ class OAuth2Provider(Protocol):
             token: The access token to verify
 
         Returns:
-            Either containing TokenPayload on success or Exception on failure
+            TokenPayload on success
+
+        Raises:
+            TokenExpiredException: If the token has expired
+            InvalidTokenException: If the token is invalid
+            AuthenticationException: For other authentication errors
 
         Example:
             >>> provider = get_oauth2_provider()
-            >>> result = provider.verify_token("eyJ...")
-            >>> if isinstance(result, Success):
-            ...     payload = result.unwrap()
-            ...     user_id = payload.sub
+            >>> payload = provider.verify_token("eyJ...")
+            >>> user_id = payload.sub
         """
         ...
 
     @abstractmethod
-    def get_user_info(
-        self, token: str
-    ) -> Either[AuthenticatedUser, Exception]:
+    def get_user_info(self, token: str) -> AuthenticatedUser:
         """
         Get authenticated user information from the provider.
 
@@ -57,21 +55,20 @@ class OAuth2Provider(Protocol):
             token: Valid access token
 
         Returns:
-            Either containing AuthenticatedUser on success or Exception on failure
+            AuthenticatedUser on success
+
+        Raises:
+            AuthenticationException: If getting user info fails
 
         Example:
             >>> provider = get_oauth2_provider()
-            >>> result = provider.get_user_info("eyJ...")
-            >>> if isinstance(result, Success):
-            ...     user = result.unwrap()
-            ...     print(f"User: {user.email}")
+            >>> user = provider.get_user_info("eyJ...")
+            >>> print(f"User: {user.email}")
         """
         ...
 
     @abstractmethod
-    def refresh_token(
-        self, refresh_token: str
-    ) -> Either[dict[str, str], Exception]:
+    def refresh_token(self, refresh_token: str) -> dict[str, str]:
         """
         Refresh an access token using a refresh token.
 
@@ -79,21 +76,22 @@ class OAuth2Provider(Protocol):
             refresh_token: The refresh token
 
         Returns:
-            Either containing new token data or Exception on failure
-            Token data should include 'access_token' and optionally
+            Dict containing new token data with 'access_token' and optionally
             'refresh_token', 'expires_in', etc.
+
+        Raises:
+            NotImplementedProviderException: If not implemented
+            AuthenticationException: If token refresh fails
 
         Example:
             >>> provider = get_oauth2_provider()
-            >>> result = provider.refresh_token("refresh_token_here")
-            >>> if isinstance(result, Success):
-            ...     tokens = result.unwrap()
-            ...     new_access_token = tokens['access_token']
+            >>> tokens = provider.refresh_token("refresh_token_here")
+            >>> new_access_token = tokens['access_token']
         """
         ...
 
     @abstractmethod
-    def revoke_token(self, token: str) -> Either[bool, Exception]:
+    def revoke_token(self, token: str) -> bool:
         """
         Revoke/invalidate an access token.
 
@@ -101,13 +99,16 @@ class OAuth2Provider(Protocol):
             token: The access token to revoke
 
         Returns:
-            Either containing True on success or Exception on failure
+            True on success
+
+        Raises:
+            NotImplementedProviderException: If not implemented
+            AuthenticationException: If token revocation fails
 
         Example:
             >>> provider = get_oauth2_provider()
-            >>> result = provider.revoke_token("eyJ...")
-            >>> if isinstance(result, Success):
-            ...     print("Token revoked successfully")
+            >>> provider.revoke_token("eyJ...")
+            >>> print("Token revoked successfully")
         """
         ...
 

@@ -1,8 +1,7 @@
 """
 Shared utility functions.
 
-This package contains utility functions:
-- functional: Either/Option monads and functional composition
+This package contains utility functions.
 """
 
 __all__ = []

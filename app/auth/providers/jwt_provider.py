@@ -15,7 +15,12 @@ from jwt import PyJWKClient
 
 from app.auth.providers.interface import OAuth2Provider
 from app.auth.models import TokenPayload, AuthenticatedUser
-from shared.utils.functional import Either, Failure, Success
+from shared.exceptions import (
+    AuthenticationException,
+    TokenExpiredException,
+    InvalidTokenException,
+    NotImplementedProviderException,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -57,7 +62,7 @@ class JWTOAuth2Provider(OAuth2Provider):
         self.algorithms = algorithms or ['RS256']
         self.jwks_client = PyJWKClient(jwks_url)
 
-    def verify_token(self, token: str) -> Either[TokenPayload, Exception]:
+    def verify_token(self, token: str) -> TokenPayload:
         """
         Verify and decode a JWT token.
 
@@ -65,7 +70,12 @@ class JWTOAuth2Provider(OAuth2Provider):
             token: JWT access token
 
         Returns:
-            Either containing TokenPayload on success or Exception on failure
+            TokenPayload on success
+
+        Raises:
+            TokenExpiredException: If the token has expired
+            InvalidTokenException: If the token is invalid
+            AuthenticationException: For other authentication errors
         """
         try:
             # Get signing key from JWKS
@@ -99,21 +109,21 @@ class JWTOAuth2Provider(OAuth2Provider):
             )
 
             logger.debug('Token verified successfully', sub=payload.sub)
-            return Success(payload)
+            return payload
 
         except jwt.ExpiredSignatureError as e:
             logger.warning('Token expired')
-            return Failure(e)
+            raise TokenExpiredException('Token has expired') from e
         except jwt.InvalidTokenError as e:
             logger.warning('Invalid token', error=str(e))
-            return Failure(e)
+            raise InvalidTokenException(f'Invalid token: {str(e)}') from e
         except Exception as e:
             logger.error('Token verification error', exc_info=e)
-            return Failure(e)
+            raise AuthenticationException(
+                f'Token verification failed: {str(e)}'
+            ) from e
 
-    def get_user_info(
-        self, token: str
-    ) -> Either[AuthenticatedUser, Exception]:
+    def get_user_info(self, token: str) -> AuthenticatedUser:
         """
         Get user information from a JWT token.
 
@@ -121,16 +131,14 @@ class JWTOAuth2Provider(OAuth2Provider):
             token: Valid JWT access token
 
         Returns:
-            Either containing AuthenticatedUser on success or Exception on failure
+            AuthenticatedUser on success
+
+        Raises:
+            AuthenticationException: If getting user info fails
         """
         try:
             # First verify the token
-            token_result = self.verify_token(token)
-
-            if isinstance(token_result, Failure):
-                return token_result
-
-            payload = token_result.unwrap()
+            payload = self.verify_token(token)
 
             # Create authenticated user from token payload
             user = AuthenticatedUser(
@@ -146,15 +154,17 @@ class JWTOAuth2Provider(OAuth2Provider):
             )
 
             logger.info('User info retrieved', user_id=str(user.user_id))
-            return Success(user)
+            return user
 
+        except (TokenExpiredException, InvalidTokenException):
+            raise
         except Exception as e:
             logger.error('Error getting user info', exc_info=e)
-            return Failure(e)
+            raise AuthenticationException(
+                f'Failed to get user info: {str(e)}'
+            ) from e
 
-    def refresh_token(
-        self, refresh_token: str
-    ) -> Either[dict[str, str], Exception]:
+    def refresh_token(self, refresh_token: str) -> dict[str, str]:
         """
         Refresh an access token.
 
@@ -166,16 +176,14 @@ class JWTOAuth2Provider(OAuth2Provider):
             refresh_token: The refresh token
 
         Returns:
-            Either containing new token data or Exception
-        """
-        return Failure(
-            NotImplementedError(
-                'Token refresh must be implemented per provider. '
-                "Please use the provider's SDK or API."
-            )
-        )
+            Dict containing new token data
 
-    def revoke_token(self, token: str) -> Either[bool, Exception]:
+        Raises:
+            NotImplementedProviderException: Always raised as this needs provider-specific implementation
+        """
+        raise NotImplementedProviderException('refresh_token')
+
+    def revoke_token(self, token: str) -> bool:
         """
         Revoke a token.
 
@@ -186,14 +194,12 @@ class JWTOAuth2Provider(OAuth2Provider):
             token: The access token to revoke
 
         Returns:
-            Either containing True on success or Exception
+            True on success
+
+        Raises:
+            NotImplementedProviderException: Always raised as this needs provider-specific implementation
         """
-        return Failure(
-            NotImplementedError(
-                'Token revocation must be implemented per provider. '
-                "Please use the provider's SDK or API."
-            )
-        )
+        raise NotImplementedProviderException('revoke_token')
 
     def validate_permissions(
         self, user: AuthenticatedUser, required_permissions: list[str]
