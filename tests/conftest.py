@@ -19,18 +19,19 @@ os.environ.setdefault('OAUTH2_ISSUER', 'https://example.com')
 def setup_test_env():
     """Setup test environment before any imports."""
     # Start PostgreSQL container
-    postgres = PostgresContainer('postgres:alpine', driver='psycopg')
+    postgres = PostgresContainer('postgres:alpine', driver=None)
     postgres.start()
 
     # Set database environment variables from container
     connection_url = postgres.get_connection_url()
     # Parse connection URL
-    # postgresql+psycopg://test:test@localhost:port/test
-    parts = connection_url.replace('postgresql+psycopg://', '').split('@')
+    # postgresql://test:test@localhost:port/test
+    parts = connection_url.replace('postgresql://', '').split('@')
     user_pass = parts[0].split(':')
     host_port_db = parts[1].split('/')
     host_port = host_port_db[0].split(':')
 
+    os.environ['POSTGRES_PROTOCOL'] = 'postgresql+psycopg2'
     os.environ['POSTGRES_USER'] = user_pass[0]
     os.environ['POSTGRES_PASSWORD'] = user_pass[1]
     os.environ['POSTGRES_SERVER'] = host_port[0]
@@ -62,7 +63,14 @@ def postgres_container():
 @pytest.fixture(scope='session')
 def engine(setup_test_env):
     """Create SQLAlchemy engine connected to the test container."""
-    from core.config import settings
+    # Force settings reload after environment setup
+    import core.config
+
+    core.config._settings = None
+
+    from core.config import get_settings
+
+    settings = get_settings()
 
     connection_url = settings.SQLALCHEMY_DATABASE_URI.unicode_string()
     test_engine = create_engine(connection_url)

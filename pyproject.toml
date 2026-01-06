@@ -17,7 +17,7 @@ dependencies = [
     "sqlalchemy-utils>=0.41.2",
     "structlog>=24.4.0",
     "uvicorn[standard]>=0.38.0",
-    "psycopg[binary,pool]>=3.3.2",
+    "psycopg2-binary>=2.9.10",
 ]
 
 [build-system]

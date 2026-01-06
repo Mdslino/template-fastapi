@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = '0.1.0'
     DEBUG: bool = False
     SECRET_KEY: str = ''
-    POSTGRES_PROTOCOL: str = 'postgresql+psycopg'
+    POSTGRES_PROTOCOL: str = 'postgresql+psycopg2'
     POSTGRES_SERVER: str = 'localhost'
     POSTGRES_PORT: str = '5432'
     POSTGRES_USER: str = 'postgres'
@@ -81,4 +81,9 @@ def get_settings() -> Settings:
     return _settings
 
 
-settings = get_settings()
+# Lazy settings access for backward compatibility
+def __getattr__(name: str):
+    """Lazy attribute access for settings."""
+    if name == 'settings':
+        return get_settings()
+    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
