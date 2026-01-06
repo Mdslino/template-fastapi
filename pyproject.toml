@@ -3,7 +3,7 @@ name = "template-fastapi"
 version = "0.1.0"
 description = "FastAPI Template with Django-like Architecture"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.14.0",
     "asgi-correlation-id>=4.3.4",
@@ -46,7 +46,7 @@ dev = [
 
 [tool.ruff]
 line-length = 79
-target-version = "py313"
+target-version = "py314"
 
 exclude = [
     ".bzr",
