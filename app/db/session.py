@@ -15,7 +15,7 @@ from core.config import settings
 
 # Create database engine with connection pooling
 if settings.SQLALCHEMY_DATABASE_URI is None:
-    raise ValueError("SQLALCHEMY_DATABASE_URI is not configured")
+    raise ValueError('SQLALCHEMY_DATABASE_URI is not configured')
 
 engine = create_engine(
     settings.SQLALCHEMY_DATABASE_URI.unicode_string(),
@@ -29,7 +29,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def get_db():
     """
     Dependency function to get database session.
-    
+
     Yields:
         Database session
     """

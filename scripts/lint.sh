@@ -14,9 +14,9 @@ echo -e "${GREEN}Running linting...${NC}"
 # Run ruff in format mode if MODE is set to fix
 if [ "$1" = "fix" ]; then
   echo -e "${YELLOW}Fixing linting errors...${NC}"
-  ruff check --select I --fix
-  ruff format
+  uv run ruff check --select I --fix
+  uv run ruff format
 else
   echo -e "${YELLOW}Checking linting errors...${NC}"
-  ruff check --select I
+  uv run ruff check --select I
 fi

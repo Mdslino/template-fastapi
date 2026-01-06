@@ -2,7 +2,6 @@ import contextlib
 import os
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy_utils import create_database, database_exists
@@ -15,21 +14,57 @@ os.environ.setdefault(
 )
 os.environ.setdefault('OAUTH2_ISSUER', 'https://example.com')
 
-from app.main import create_app
-from shared.models import Base
+
+@pytest.fixture(scope='session', autouse=True)
+def setup_test_env():
+    """Setup test environment before any imports."""
+    # Start PostgreSQL container
+    postgres = PostgresContainer('postgres:alpine', driver='psycopg')
+    postgres.start()
+
+    # Set database environment variables from container
+    connection_url = postgres.get_connection_url()
+    # Parse connection URL
+    # postgresql+psycopg://test:test@localhost:port/test
+    parts = connection_url.replace('postgresql+psycopg://', '').split('@')
+    user_pass = parts[0].split(':')
+    host_port_db = parts[1].split('/')
+    host_port = host_port_db[0].split(':')
+
+    os.environ['POSTGRES_USER'] = user_pass[0]
+    os.environ['POSTGRES_PASSWORD'] = user_pass[1]
+    os.environ['POSTGRES_SERVER'] = host_port[0]
+    os.environ['POSTGRES_PORT'] = host_port[1]
+    os.environ['POSTGRES_DB'] = host_port_db[1]
+
+    yield
+
+    # Cleanup
+    postgres.stop()
+
+
+# Import after environment setup (noqa required - env must be set first)
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import create_app  # noqa: E402
+from shared.models import Base  # noqa: E402
 
 
 @pytest.fixture(scope='session')
 def postgres_container():
-    """Start a PostgreSQL container for the test session."""
-    with PostgresContainer('postgres:alpine', driver='psycopg') as postgres:
-        yield postgres
+    """Get PostgreSQL container connection info."""
+    from core.config import settings
+
+    connection_url = settings.SQLALCHEMY_DATABASE_URI.unicode_string()
+    return connection_url
 
 
 @pytest.fixture(scope='session')
-def engine(postgres_container):
+def engine(setup_test_env):
     """Create SQLAlchemy engine connected to the test container."""
-    connection_url = postgres_container.get_connection_url()
+    from core.config import settings
+
+    connection_url = settings.SQLALCHEMY_DATABASE_URI.unicode_string()
     test_engine = create_engine(connection_url)
 
     # Create database if it doesn't exist

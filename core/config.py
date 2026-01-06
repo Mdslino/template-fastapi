@@ -66,7 +66,7 @@ class Settings(BaseSettings):
             postgres_dsn = f'{self.POSTGRES_PROTOCOL}://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
         else:
             postgres_dsn = f'{self.POSTGRES_PROTOCOL}://{self.POSTGRES_USER}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
-            
+
         return PostgresDsn(postgres_dsn)
 
 
@@ -82,4 +82,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-

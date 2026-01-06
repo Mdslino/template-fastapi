@@ -6,9 +6,8 @@ This module provides an immutable Email value object with validation.
 
 import re
 
-from pydantic import BaseModel, field_validator
-
 from app.domain.exceptions import ValidationException
+from pydantic import BaseModel, field_validator
 
 
 class Email(BaseModel):

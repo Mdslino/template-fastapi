@@ -12,4 +12,4 @@ router = APIRouter(prefix='/api/v1')
 # Include all route modules
 # TODO: Add your routes here
 
-__all__ = ["router"]
+__all__ = ['router']

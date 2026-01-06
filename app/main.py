@@ -57,7 +57,7 @@ def create_app() -> FastAPI:
     """
     # Setup logging
     setup_logging(json_logs=settings.JSON_LOGS, log_level=settings.LOG_LEVEL)
-    
+
     dictConfig(settings.LOGGING_CONFIG)
     fastapi_app = FastAPI(
         title=settings.APP_NAME,
@@ -70,7 +70,7 @@ def create_app() -> FastAPI:
     from app.api.v1 import router as api_v1_router
 
     fastapi_app.include_router(api_v1_router)
-    
+
     # Register healthcheck endpoint
     fastapi_app.get('/healthcheck', tags=['health'])(healthcheck)
 
