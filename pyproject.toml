@@ -9,7 +9,6 @@ dependencies = [
     "asgi-correlation-id>=4.3.4",
     "fastapi>=0.121.1",
     "httpx>=0.28.1",
-    "psycopg2-binary>=2.9.10",
     "pydantic[email]>=2.10.3",
     "pydantic-settings>=2.6.1",
     "pyhumps>=3.8.0",
@@ -30,8 +29,8 @@ where = ["."]
 include = ["app*"]
 exclude = ["tests*", "alembic*"]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "faker>=33.1.0",
     "ipython>=8.31.0",
     "isort>=5.13.2",

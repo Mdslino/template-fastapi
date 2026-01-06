@@ -11,7 +11,7 @@ help:
 all: clean install test
 
 install:
-	poetry install
+	uv sync
 
 clean:
 	@find . -name '*.pyc' -exec rm -rf {} +
