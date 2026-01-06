@@ -109,7 +109,15 @@ def vcr_config():
 
 
 @pytest.fixture
-def app():
+def app(setup_test_env):
+    """Create FastAPI app with test configuration."""
+    # Force reload of settings and engine after environment setup
+    import app.db
+    import core.config
+
+    app.db._engine = None
+    core.config._settings = None
+
     return create_app()
 
 

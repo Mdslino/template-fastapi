@@ -1,7 +1,5 @@
 from sqlalchemy import Engine, create_engine
 
-from core.config import settings
-
 _engine: Engine | None = None
 
 
@@ -9,6 +7,9 @@ def get_engine() -> Engine:
     """Get or create the database engine (lazy initialization)."""
     global _engine
     if _engine is None:
+        from core.config import get_settings
+
+        settings = get_settings()
         _engine = create_engine(
             settings.SQLALCHEMY_DATABASE_URI.unicode_string(),
             pool_pre_ping=True,  # type: ignore
