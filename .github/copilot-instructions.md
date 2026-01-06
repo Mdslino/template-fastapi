@@ -27,11 +27,30 @@ This is a **Django-like modular FastAPI template** emphasizing SOLID principles 
 - **`make setup-env`**: Copy `.example.env` to `.env` (do this first!)
 - **`make run-db`**: Start PostgreSQL in Docker
 - **`make run-dev`**: Run with hot reload (`--reload` flag)
-- **`make test`**: Run pytest in Docker container
+- **`make test`**: Run pytest with Testcontainers
 - **`make lint`**: Check with ruff (import sorting + formatting)
 - **`make lint MODE=fix`**: Auto-fix linting issues
 - **`make migrate`**: Apply pending migrations (`alembic upgrade head`)
 - **`make migration m="description"`**: Create new migration
+
+### Python Command Execution
+
+**ALWAYS use `uv run` to execute Python packages or commands:**
+
+```bash
+# ✅ Correct
+uv run pytest tests/
+uv run python script.py
+uv run mypy app/
+uv run alembic upgrade head
+
+# ❌ Wrong
+pytest tests/
+python script.py
+mypy app/
+```
+
+`uv run` ensures commands execute in the project's virtual environment without manual activation.
 
 ### Database Migrations
 
@@ -48,7 +67,7 @@ This is a **Django-like modular FastAPI template** emphasizing SOLID principles 
 
 **Prefer integration tests with minimal mocking**. Test real components working together using actual database connections and dependencies. Use mocks only when external services are involved (APIs, email, etc.).
 
-Tests use pytest with Docker Compose. Test fixtures in [tests/conftest.py](tests/conftest.py) automatically create/drop test database. Database factories in `tests/factories/session.py`. Environment variables are set in conftest for test isolation.
+**Tests use pytest with Testcontainers**. Testcontainers automatically manages PostgreSQL containers during tests - no manual database setup required. Test fixtures in [tests/conftest.py](tests/conftest.py) handle container lifecycle and database setup. See [tests/README.md](tests/README.md) for detailed testing documentation.
 
 **TDD Workflow**:
 1. **Write failing test first** for the new feature/use case
@@ -163,7 +182,7 @@ def vcr_config():
     }
 ```
 
-**Run tests**: `make test` (runs in Docker with isolated database)
+**Run tests**: `make test` or `uv run pytest tests/ -vv` (uses Testcontainers for automatic database management)
 
 ## Code Conventions
 

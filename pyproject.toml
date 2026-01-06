@@ -42,7 +42,8 @@ dev = [
     "pytest-mock>=3.14.0",
     "pytest-sugar>=1.0.0",
     "pytest-vcr>=1.0.2",
-    "ruff>=0.8.4",
+    "ruff>=0.14.10",
+    "testcontainers[postgres]>=4.10.0",
 ]
 
 [tool.ruff]
@@ -114,4 +115,7 @@ docstring-code-line-length = "dynamic"
 env_files = [
     ".env",
     ".test.env"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:testcontainers.*",
 ]

@@ -43,10 +43,10 @@ clean:
 
 # Test Section
 test:
-	@docker compose run app pytest tests/ -vv
+	@uv run pytest tests/ -vv
 
 test-coverage:
-	@docker compose run app pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
+	@uv run pytest --cov-branch --cov-report term-missing --cov=app tests/ -vv
 
 #Run Section
 run:
@@ -63,7 +63,7 @@ run-docker:
 
 # Lint Section
 mypy:
-	@mypy app/
+	@uv run mypy app/
 
 lint:
 	@./scripts/lint.sh $(MODE)
