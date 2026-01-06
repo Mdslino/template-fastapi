@@ -138,3 +138,10 @@ dmypy.json
 ./.ruff_cache/*
 
 service-account-file.json
+
+# dotenv environment variables file
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/

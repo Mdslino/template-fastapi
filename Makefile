@@ -22,6 +22,10 @@ setup-env:
 		echo "✗ .env file already exists"; \
 	fi
 
+setup-hooks:
+	@uv run pre-commit install
+	@echo "✓ Pre-commit hooks installed"
+
 clean:
 	@find . -name '*.pyc' -exec rm -rf {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
@@ -77,3 +81,14 @@ migration:
 
 migrate-down:
 	@./scripts/migrate.sh downgrade -1
+
+# Release Section
+
+fragment:
+	@./scripts/fragment.sh
+
+release:
+	@npm run release
+
+release-dry:
+	@npm run release:dry

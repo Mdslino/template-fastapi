@@ -1,0 +1,30 @@
+{
+  "name": "template-fastapi",
+  "version": "1.0.0",
+  "description": "FastAPI template following a Django-like modular architecture, SOLID principles, and Object-Oriented Programming with **Provider-Agnostic OAuth2 Authentication**.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release": "release-it",
+    "release:dry": "release-it --dry-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mdslino/template-fastapi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Mdslino/template-fastapi/issues"
+  },
+  "homepage": "https://github.com/Mdslino/template-fastapi#readme",
+  "devDependencies": {
+    "news-fragments": "^4.1.0",
+    "release-it": "^19.2.2"
+  }
+}
