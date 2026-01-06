@@ -8,22 +8,15 @@ database operations.
 from typing import Annotated
 
 from fastapi import Depends
-from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from core.config import settings
+from app.db import get_engine
 
-# Create database engine with connection pooling
-if settings.SQLALCHEMY_DATABASE_URI is None:
-    raise ValueError('SQLALCHEMY_DATABASE_URI is not configured')
 
-engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URI.unicode_string(),
-    pool_pre_ping=True,
-)
-
-# Create SessionLocal class
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def get_session_local():
+    """Get or create SessionLocal (lazy initialization)."""
+    engine = get_engine()
+    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_db():
@@ -33,6 +26,7 @@ def get_db():
     Yields:
         Database session
     """
+    SessionLocal = get_session_local()
     db = SessionLocal()
     try:
         yield db
