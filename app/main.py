@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
 from sqlalchemy import text
 
-from app.auth.dependencies import SessionDep
+from app.db.session import SessionDep
 from core.config import settings
 from core.logging import setup_logging
 from core.middleware import logging_middleware
@@ -36,7 +36,7 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         version=settings.APP_VERSION,
         debug=settings.DEBUG,
-        description='FastAPI Template with OAuth2 Authentication',
+        description='FastAPI Template',
     )
 
     # Include API routers

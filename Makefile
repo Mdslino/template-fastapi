@@ -13,6 +13,15 @@ all: clean install test
 install:
 	uv sync
 
+setup-env:
+	@if [ ! -f .env ]; then \
+		cp .example.env .env; \
+		echo "✓ Created .env file from .example.env"; \
+		echo "⚠ Please update .env with your configuration"; \
+	else \
+		echo "✗ .env file already exists"; \
+	fi
+
 clean:
 	@find . -name '*.pyc' -exec rm -rf {} +
 	@find . -name '__pycache__' -exec rm -rf {} +
@@ -37,13 +46,13 @@ test-coverage:
 
 #Run Section
 run:
-	@uvicorn app.main:app --workers 4 --host 0.0.0.0
+	@./scripts/run.sh --workers 4 --host 0.0.0.0
 
 run-dev:
-	@uvicorn app.main:app --reload --host 0.0.0.0
+	@./scripts/run.sh --reload --host 0.0.0.0
 
 run-db:
-	docker-compose up -d migrations
+	docker-compose up -d db
 
 run-docker:
 	docker-compose up -d
@@ -58,13 +67,13 @@ lint:
 # Migration Section
 
 migrate:
-	@uv run alembic upgrade head
+	@./scripts/migrate.sh upgrade head
 
 docker-migrate:
 	@docker compose run app alembic upgrade head
 
 migration:
-	@uv run alembic revision --autogenerate -m "$(m)"
+	@./scripts/migrate.sh revision --autogenerate -m "$(m)"
 
 migrate-down:
-	@uv run alembic downgrade -1
+	@./scripts/migrate.sh downgrade -1

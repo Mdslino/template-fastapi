@@ -4,13 +4,13 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
-# Import settings from new location
-from app.infrastructure.config.settings import settings
+# Import settings from core
+from core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-# Import Base from new location
-from app.infrastructure.database.models import Base
+# Import Base from shared models
+from shared.models import Base
 
 # Import all models to ensure they're registered with Base.metadata
 # Add your models here as you create them

@@ -1,7 +1,7 @@
 [project]
 name = "template-fastapi"
 version = "0.1.0"
-description = "FastAPI Template with Django-like Architecture and OAuth2"
+description = "FastAPI Template with Django-like Architecture"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -12,12 +12,12 @@ dependencies = [
     "pydantic[email]>=2.10.3",
     "pydantic-settings>=2.6.1",
     "pyhumps>=3.8.0",
-    "pyjwt[crypto]>=2.10.1",
     "python-multipart>=0.0.19",
     "sqlalchemy>=2.0.0",
     "sqlalchemy-utils>=0.41.2",
     "structlog>=24.4.0",
     "uvicorn[standard]>=0.38.0",
+    "psycopg[binary,pool]>=3.3.2",
 ]
 
 [build-system]
