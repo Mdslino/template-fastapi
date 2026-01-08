@@ -31,6 +31,9 @@ class Settings(BaseSettings):
         LOG_LEVEL: Logging level
         LOGGING_CONFIG: Logging configuration dict
         JSON_LOGS: Whether to use JSON format for logs
+        AUTH0_DOMAIN: Auth0 domain for token validation
+        AUTH0_AUDIENCE: Auth0 API identifier (audience)
+        AUTH0_ALGORITHM: JWT algorithm (default: RS256)
     """
 
     APP_NAME: str = 'FastAPI'
@@ -50,6 +53,9 @@ class Settings(BaseSettings):
         'disable_existing_loggers': False,
     }
     JSON_LOGS: bool = False
+    AUTH0_DOMAIN: str = ''
+    AUTH0_AUDIENCE: str = ''
+    AUTH0_ALGORITHM: str = 'RS256'
 
     model_config = SettingsConfigDict(env_file='.env')
 
