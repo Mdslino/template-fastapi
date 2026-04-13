@@ -32,7 +32,7 @@ exclude = ["tests*", "alembic*"]
 [dependency-groups]
 dev = [
     "faker>=33.1.0",
-    "ipython>=8.31.0",
+    "ipython>=9.12.0",
     "isort>=5.13.2",
     "mypy>=1.13.0",
     "pre-commit>=4.5.1",
