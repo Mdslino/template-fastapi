@@ -5,7 +5,7 @@ description = "FastAPI Template with Django-like Architecture"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "alembic>=1.14.0",
+    "alembic>=1.18.4",
     "asgi-correlation-id>=4.3.4",
     "fastapi>=0.121.1",
     "httpx>=0.28.1",
