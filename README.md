@@ -20,7 +20,7 @@ This project follows a **Django-like modular architecture** with clear separatio
 - ✅ **Type Hints**: Complete typing throughout the codebase
 - ✅ **Structured Logging**: Structured logs with structlog
 
-##  Requirements
+## Requirements
 
 - Python >= 3.13
 - PostgreSQL
@@ -33,15 +33,17 @@ This project follows a **Django-like modular architecture** with clear separatio
 **Important**: You must configure environment variables before running the application.
 
 1. Copy `.example.env` to `.env`:
+
    ```bash
    make setup-env
    ```
 
 2. Edit `.env` and set required variables:
+
    ```bash
    # Required: Set a strong secret key for cryptographic operations
    SECRET_KEY=your-strong-secret-key-here
-   
+
    # Required: Set database password
    POSTGRES_PASSWORD=your-database-password
    ```
@@ -121,12 +123,12 @@ make format-code
     └── utils/              # Utility functions
 ```
 
-##  API Documentation
+## API Documentation
 
 After starting the application, access:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
 
 ## 🔧 Development
 
@@ -182,6 +184,7 @@ make fragment
 ```
 
 **Interactive workflow:**
+
 1. The script will display a menu with 5 fragment types
 2. Select a number (1-5) for the type:
    - `1` - **feature**: New features and functionality
@@ -193,6 +196,7 @@ make fragment
 4. The script creates a timestamped file in `fragments/` folder
 
 **Example:**
+
 ```bash
 $ make fragment
 
@@ -234,6 +238,7 @@ make release
 ```
 
 The release process will:
+
 1. Compile all fragments from `fragments/` folder into CHANGELOG.md
 2. Remove the fragment files
 3. Bump version in package.json
