@@ -6,7 +6,7 @@ FastAPI template following a Django-like modular architecture, SOLID principles,
 
 This project follows a **Django-like modular architecture** with clear separation of responsibilities:
 
-- **`app/`**: Application modules (auth, api, db)
+- **`app/`**: Application modules (auth, api, db, health)
 - **`core/`**: Application setup and configuration
 - **`shared/`**: Shared utilities and base classes
 
@@ -106,6 +106,7 @@ make format-code
 ├── app/                     # Application code (feature modules)
 │   ├── api/v1/             # API versioning
 │   ├── db/                 # Database setup
+│   ├── health/             # Health feature module (routes + services)
 │   └── main.py             # Application entry point
 │
 ├── core/                    # Application-wide setup
@@ -138,6 +139,10 @@ After starting the application, access:
 2. Add models, schemas, services, routes, and dependencies
 3. Include the router in `app/api/v1/router.py`
 4. Add tests for the new module
+
+For non-versioned operational endpoints (for example `/healthcheck`), place
+the route inside its own feature module and include that router in
+`app/main.py`.
 
 ### SOLID Principles
 

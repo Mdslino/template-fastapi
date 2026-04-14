@@ -45,10 +45,10 @@ def setup_test_env():
 
 
 # Import after environment setup (noqa required - env must be set first)
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from app.main import create_app  # noqa: E402
-from shared.models import Base  # noqa: E402
+from app.main import create_app
+from shared.models import Base
 
 
 @pytest.fixture(scope='session')
@@ -63,13 +63,9 @@ def postgres_container():
 @pytest.fixture(scope='session')
 def engine(setup_test_env):
     """Create SQLAlchemy engine connected to the test container."""
-    # Force settings reload after environment setup
-    import core.config
-
-    core.config._settings = None
-
     from core.config import get_settings
 
+    get_settings.cache_clear()
     settings = get_settings()
 
     connection_url = settings.SQLALCHEMY_DATABASE_URI.unicode_string()
@@ -111,12 +107,13 @@ def vcr_config():
 @pytest.fixture
 def app(setup_test_env):
     """Create FastAPI app with test configuration."""
-    # Force reload of settings and engine after environment setup
-    import app.db
-    import core.config
+    from app.db import get_engine
+    from app.db.session import get_session_maker
+    from core.config import get_settings
 
-    app.db._engine = None
-    core.config._settings = None
+    get_settings.cache_clear()
+    get_engine.cache_clear()
+    get_session_maker.cache_clear()
 
     return create_app()
 

@@ -1,7 +1,4 @@
-from unittest import mock
 from unittest.mock import ANY
-
-import pytest
 
 
 def test_healthcheck(client):

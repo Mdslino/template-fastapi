@@ -5,6 +5,7 @@ This module provides the SQLAlchemy engine and session management for
 database operations.
 """
 
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
@@ -13,10 +14,14 @@ from sqlalchemy.orm import Session, sessionmaker
 from app.db import get_engine
 
 
-def get_session_local():
-    """Get or create SessionLocal (lazy initialization)."""
-    engine = get_engine()
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+@lru_cache
+def get_session_maker() -> sessionmaker[Session]:
+    """Return cached SQLAlchemy session factory."""
+    return sessionmaker(
+        autocommit=False,
+        autoflush=False,
+        bind=get_engine(),
+    )
 
 
 def get_db():
@@ -26,8 +31,8 @@ def get_db():
     Yields:
         Database session
     """
-    SessionLocal = get_session_local()
-    db = SessionLocal()
+    session_maker = get_session_maker()
+    db = session_maker()
     try:
         yield db
     finally:

@@ -8,44 +8,14 @@ middleware, logging, and routes.
 import logging
 from logging.config import dictConfig
 
-import structlog
 from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 from fastapi.logger import logger as fastapi_logger
-from sqlalchemy import text
 
-from app.db.session import SessionDep
+from app.health import router as health_router
 from core.config import settings
 from core.logging import setup_logging
 from core.middleware import logging_middleware
-
-logger = structlog.get_logger(__name__)
-
-
-def healthcheck(db: SessionDep) -> dict:
-    """
-    Health check endpoint.
-
-    Verifies application and database connectivity.
-
-    Args:
-        db: Database session (injected)
-
-    Returns:
-        Health status of app and database
-    """
-    db_status = 'ok'
-    try:
-        db.execute(text('SELECT 1'))
-    except Exception as e:
-        db_status = 'error'
-        logger.error('Database is not available', exc_info=e)
-
-    return {
-        'app': 'ok',
-        'db': db_status,
-        'version': settings.APP_VERSION,
-    }
 
 
 def create_app() -> FastAPI:
@@ -70,9 +40,7 @@ def create_app() -> FastAPI:
     from app.api.v1 import router as api_v1_router
 
     fastapi_app.include_router(api_v1_router)
-
-    # Register healthcheck endpoint
-    fastapi_app.get('/healthcheck', tags=['health'])(healthcheck)
+    fastapi_app.include_router(health_router)
 
     # Add middleware
     fastapi_app.middleware('http')(logging_middleware)

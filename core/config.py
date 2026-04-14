@@ -6,6 +6,7 @@ including database configuration, API settings, logging configuration,
 and OAuth2 authentication settings.
 """
 
+from functools import lru_cache
 from typing import Any
 
 from pydantic import PostgresDsn
@@ -61,7 +62,6 @@ class Settings(BaseSettings):
         Returns:
             PostgreSQL database URI
         """
-        # Build the connection string from components
         if self.POSTGRES_PASSWORD:
             postgres_dsn = f'{self.POSTGRES_PROTOCOL}://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}'
         else:
@@ -70,20 +70,17 @@ class Settings(BaseSettings):
         return PostgresDsn(postgres_dsn)
 
 
-_settings = None
-
-
+@lru_cache
 def get_settings() -> Settings:
-    """Get application settings (singleton pattern)."""
-    global _settings
-    if _settings is None:
-        _settings = Settings()
-    return _settings
+    """Return cached application settings."""
+    return Settings()
 
 
-# Lazy settings access for backward compatibility
-def __getattr__(name: str):
-    """Lazy attribute access for settings."""
-    if name == 'settings':
-        return get_settings()
-    raise AttributeError(f'module {__name__!r} has no attribute {name!r}')
+class _SettingsProxy:
+    """Lazy settings proxy that respects get_settings cache resets."""
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_settings(), name)
+
+
+settings = _SettingsProxy()
